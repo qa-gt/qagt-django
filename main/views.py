@@ -504,8 +504,7 @@ def edit_information(request):
         return render(request, "edit_information.html")
 
 
-@app.route("/flush/user/<int:user_id>")  #这个不会改--Iron_Grey_
-def flush_user(user_id):
+def flush_user(request, user_id):
     info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
@@ -513,7 +512,7 @@ def flush_user(user_id):
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     users.flush(user_id)
-    return "OK"
+    return HttpResponse("OK")
 
 
 @app.route("/report/article/<int:atc_id>")  #这个不会改--Iron_Grey_

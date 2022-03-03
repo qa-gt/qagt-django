@@ -31,4 +31,5 @@ urlpatterns = [
     path('sadmin/add-tag', views.sadmin_addtag, name='sadmin_addtag'),
     path('sadmin/rm-admin', views.sadmin_rmdamin, name='sadmin_rmdamin'),
     path('test', views.test, name='test'),
+    path('flush/user/<int:user_id>', views.flush_user, name='flush_user'),
 ]
