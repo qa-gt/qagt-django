@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %} - QA瓜田</title>
+    <meta name="viewport" content="width=device-width" initial-scale="1" />
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" type="image/png" sizes="144x144" href="/static/favicon.ico" />
+    {% block head %}{% endblock %}
+</head>
+
+
+<body>
+    <div class="main">
+        <div class="left-blank blanks">
+            {% block left %}{% endblock %}
+        </div>
+
+
+        <div class="center-right-blank blanks">
+            <div class="margins">
+                <div style="height: 10px;"></div>
+                {#
+                {% for message in get_flashed_messages() %}
+                <div class="alert alert-info flash">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                        &times;
+                    </button>
+                    {{ message }}
+                </div>
+                {% endfor %}
+                #}
+                <div class="user-information-edit">
+                    <!-- <div> -->
+                    {% block center_right %}{% endblock %}
+                </div>
+                <!-- <div style="height: 15px;"></div> -->
+                {% block margins %}{% endblock %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="footer">
+        鲁ICP备2020034769号
+        <span> | ©2022 异想之旅 版权所有</span>
+    </div> -->
+</body>
+
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/blueimp-md5/2.9.0/js/md5.min.js"></script>
+<script src="/static/js/sign.min.js"></script>
+<script>
+    const USERNAME = '{{ user.name }}';
+    $.ajaxSetup({statusCode: {
+        403: function() {
+            alert("访问过于频繁或权限不足")
+        }
+    }});
+</script>
+{% block js %}{% endblock %}
+<script src="https://cdn.yixiangzhilv.com/js/yxzl.js" type="module"></script>
+
+</html>
