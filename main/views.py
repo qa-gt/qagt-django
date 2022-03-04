@@ -498,11 +498,9 @@ def admin_delcmt(request):
         # flash("删除成功！")
     except Exception as e:
         ...
-        # flash(f"删除失败！\n<br />\n{e}")
     return HttpResponseRedirect("/admin")
 
 
-#@app.route("/sadmin")
 def sadmin_index(request):
     info_init()
     if not request.session.get("user"):
@@ -513,7 +511,6 @@ def sadmin_index(request):
     return render(request, "sadmin.html")
 
 
-#@app.route("/sadmin/del-user", methods=["POST"])
 def sadmin_deluser(request):
     info_init()
     if not request.session.get("user"):
@@ -526,14 +523,11 @@ def sadmin_deluser(request):
         mysql.update("users", {"password": "封号"}, {"id": user_id})
         users.blacklist.append(user_id)
         users.flush(user_id)
-        # flash("封禁成功！")
     except Exception as e:
         ...
-        # flash(f"封禁失败！\n<br />\n{e}")
     return HttpResponseRedirect("/sadmin")
 
 
-#@app.route("/sadmin/add-admin", methods=["POST"])
 def sadmin_addadmin(request):
     info_init()
     if not request.session.get("user"):
@@ -546,14 +540,11 @@ def sadmin_addadmin(request):
         level = int(request.POST["level"])
         mysql.update("users", {"admin": level}, {"id": user_id})
         users.flush(user_id)
-        # flash("操作成功！")
     except Exception as e:
         ...
-        # flash(f"操作失败！\n<br />\n{e}")
     return HttpResponseRedirect("/sadmin")
 
 
-# @app.route("/sadmin/add-tag", methods=["POST"])
 def sadmin_addtag(request):
     info_init()
     if not request.session.get("user"):
@@ -566,14 +557,11 @@ def sadmin_addtag(request):
         tags = request.POST["tags"]
         mysql.update("users", {"tags": tags}, {"id": user_id})
         users.flush(user_id)
-        # flash("操作成功！")
     except Exception as e:
         ...
-        # flash(f"操作失败！\n<br />\n{e}")
     return HttpResponseRedirect("/sadmin")
 
 
-#@app.route("/sadmin/rm-admin", methods=["POST"])
 def sadmin_rmdamin(request):
     info_init()
     if not request.session.get("user"):
@@ -585,20 +573,22 @@ def sadmin_rmdamin(request):
         user_id = int(request.POST["user_id"])
         mysql.update("users", {"admin": 0}, {"id": user_id})
         users.flush(user_id)
-        # flash("操作成功！")
     except Exception as e:
         ...
-        # flash(f"操作失败！\n<br />\n{e}")
     return HttpResponseRedirect("/sadmin")
 
 
-#@app.route("/test")
 def test(request):
     return HttpResponse("123")
 
 
-def error_404(error):
-    return render_template("404.html"), 404
+def error_404(request, e):
+    print(e)
+    return render(request, "404.html")
+
+
+def error_500(request):
+    return render(request, "500.html")
 
 
 def error_410(error):

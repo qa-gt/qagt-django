@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 import os
 
+QAGT_SERVER = os.environ.get('QAGTSERVER', "DEVELOPMENT")
+QAGT_DEVELOPMENT = QAGT_SERVER.startswith("DEVELOPMENT") and True or False
+print(f"QAGT_SERVER: {QAGT_SERVER}\nQAGT_DEVELOPMENT: {QAGT_DEVELOPMENT}")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,7 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6gq34i&n0-nqdndwa*@4+#(g_@i$5zsnume4zdj9r^5p4*1x4z'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("QAGTDEBUG") == "False" and False or QAGT_DEVELOPMENT
+print(f"DEBUG: {DEBUG}")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -74,7 +79,7 @@ TEMPLATES = [
             'QAGT.jinja2_env.environment'
         },
     },
-        {
+    {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
         'APP_DIRS': True,
@@ -94,21 +99,24 @@ WSGI_APPLICATION = 'QAGT.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-    #     'HOST': "alimysql.yixiangzhilv.com",  # 数据库ip
-    #     'PORT': 3306,  # 数据库端口
-    #     'USER': "yxzl",  # 用户名
-    #     'PASSWORD': "@Danny-Yxzl*20180401",  # 密码
-    #     'NAME': "qabbq",  # 数据库名
-    # },
-    # 'sqlite3': {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if QAGT_DEVELOPMENT:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        },
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',  # 数据库产品
+            'HOST': "alimysql.yixiangzhilv.com",  # 数据库ip
+            'PORT': 3306,  # 数据库端口
+            'USER': "yxzl",  # 用户名
+            'PASSWORD': "@Danny-Yxzl*20180401",  # 密码
+            'NAME': "qabbq",  # 数据库名
+        },
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -137,9 +145,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
