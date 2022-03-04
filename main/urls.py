@@ -11,7 +11,7 @@ urlpatterns = [
     path('dashboard', views.dashboard, name='dashboard'),
     path('user/login', views.user_login, name='user_login'),
     path('user/logout', views.user_logout, name='user_logout'),
-    path('article/write', views.article_writing, name='article_writing'),
+    path('article/write', views.article_write, name='article_write'),
     path('image-upload', views.upload, name='upload'),
     path('notice', views.make_notice, name='make_notice'),
     path('user/edit', views.edit_information, name='edit_information'),
@@ -31,5 +31,4 @@ urlpatterns = [
     path('sadmin/add-tag', views.sadmin_addtag, name='sadmin_addtag'),
     path('sadmin/rm-admin', views.sadmin_rmdamin, name='sadmin_rmdamin'),
     path('test', views.test, name='test'),
-    path('flush/user/<int:user_id>', views.flush_user, name='flush_user'),
 ]

@@ -28,7 +28,7 @@
                     <br />
                     <h5 class="break-word">
                         {% if logined %}
-                        欢迎回来，{{ user["name"] }}
+                        欢迎回来，{{ user.name }}
                         <a href="/user/logout" id="logout">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="#33CCCC" stroke-width="2.5" stroke-linecap="round"
@@ -41,12 +41,12 @@
                         {% endif %}
                     </h5>
                     <!-- <p>
-                    {{ user["grade"] }}年级
+                    {{ user.grade }}年级
                     |
                     {{ {"男": "♂", "女": "♀", "保密": "性别保密"}[user["sex"]] }}
                 </p>
                 <p class="break-word">
-                    {{ user["introduction"] }}
+                    {{ user.introduction }}
                 </p> -->
                 </div>
                 <!-- end用户信息 -->
@@ -58,7 +58,7 @@
                             <path d="M9 22V12h6v10M2 10.6L12 2l10 8.6" />
                         </svg>
                     </a>
-                    <a href="/user/{{ user['id'] }}">
+                    <a href="/user/{{ user.id }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="#33CCCC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3" />
@@ -121,15 +121,15 @@
                     <hr />
                     {% for i in articles %}
                     <div class="article-items">
-                        <a href="/article/{{ i['id'] }}" target="_blank">
+                        <a href="/article/{{ i.id }}" target="_blank">
                             <div class="article-items-introduction">
-                                <h5 style="font-weight: bold;">{{ i["title"] }}</h5>
+                                <h5 style="font-weight: bold;">{{ i.title }}</h5>
                                 <h6 style="font-size: small;">
-                                    {{ i["writer"]["name"] }}
+                                    {{ i.author.name }}
                                     &emsp;
-                                    {{ i["time"] }}
+                                    {{ i.update_time }}
                                 </h6>
-                                <p>{{ i["content"][:100] }}</p>
+                                <p>{{ i.content[:150] }}</p>
                             </div>
                         </a>
                     </div>

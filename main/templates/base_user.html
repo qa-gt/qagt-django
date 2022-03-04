@@ -4,7 +4,7 @@
     <div style="height: 20px;"></div>
     <div style="text-align: center; margin-bottom: 10%;">
         <h5 style="font-weight: bold;" class="break-word">
-            {{ user["name"] }}
+            {{ user.name }}
             <a href="/user/logout" id="logout">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="#33CCCC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -13,18 +13,18 @@
             </a>
         </h5>
         <p>
-            ID: {{ user["id"] }}
+            ID: {{ user.id }}
             |
-            {{ user["grade"] }}年级
+            {{ user.grade }}年级
             |
             {{ {"男": "♂", "女": "♀", "保密": "性别保密"}[user["sex"]] }}
         </p>
         <p class="break-word">
-            {{ user["introduction"] }}
+            {{ user.introduction }}
         </p>
         {% if user["tags"] != "无认证信息" %}
         <p style="font-weight: bold;">
-            认证: {{ user["tags"] }}
+            认证: {{ user.tags }}
         </p>
         {% endif %}
     </div>
@@ -37,7 +37,7 @@
                 <path d="M9 22V12h6v10M2 10.6L12 2l10 8.6" />
             </svg>
         </a>
-        <a href="/user/{{ user['id'] }}">
+        <a href="/user/{{ user.id }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                 stroke="#33CCCC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3" />

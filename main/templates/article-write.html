@@ -8,12 +8,12 @@
 
 {% block center_right %}
 <div class="article-writing-area">
-    <input class="form-control" id="article-title" placeholder="标题" value='{{ data.get("title") or "" }}'
+    <input class="form-control" id="article-title" placeholder="标题" value="{{ data and data.title or '' }}"
         style="width: 100%;" required />
 
     <div class="article-writing-area-textarea" style="margin-top: 10px;">
         <textarea class="form-control" id="article-content" rows="12" name="text" placeholder="请写下你的创作"
-            required>{{ data.get("content") or "" }}</textarea>
+            required>{{ data and data.content or '' }}</textarea>
     </div>
 
     <form action="/image-upload" class="dropzone" id="imageUpload" style="margin-top: 10px;"></form>
@@ -31,7 +31,6 @@
 {% block js %}
 <script src="https://cdn.staticfile.org/dropzone/5.9.3/min/dropzone.min.js"></script>
 <script>
-    const id = "{{ data['id'] }}";
     Dropzone.options.imageUpload = {
         maxFilesize: 5,
         maxFiles: 9,
@@ -59,7 +58,7 @@
             $(submit_button).text("重新提交");
             return;
         }
-        $.post("/article/write?update={{ 'true' if data else 'false' }}&id={{ data.get('id') or '' }}", {
+        $.post("/article/write?update={{ 'true' if data else 'false' }}&id={{ data and data.id or 0 }}", {
             "title": article_title.val(),
             "content": article_content.val(),
             "sign": sign

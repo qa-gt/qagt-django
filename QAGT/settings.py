@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6gq34i&n0-nqdndwa*@4+#(g_@i$5zsnume4zdj9r^5p4*1x4z'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -95,15 +95,16 @@ WSGI_APPLICATION = 'QAGT.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',  # 数据库产品
+    #     'HOST': "alimysql.yixiangzhilv.com",  # 数据库ip
+    #     'PORT': 3306,  # 数据库端口
+    #     'USER': "yxzl",  # 用户名
+    #     'PASSWORD': "@Danny-Yxzl*20180401",  # 密码
+    #     'NAME': "qabbq",  # 数据库名
+    # },
+    # 'sqlite3': {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-        'HOST': "alimysql.yixiangzhilv.com",  # 数据库ip
-        'PORT': 3306,  # 数据库端口
-        'USER': "yxzl",  # 用户名
-        'PASSWORD': "@wangzihan*yixiangzhilv20070601",  # 密码
-        'NAME': "qabbq",  # 数据库名
-    },
-    'sqlite3': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
@@ -130,6 +131,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# AUTH_USER_MODEL = 'QAGT.Users'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/

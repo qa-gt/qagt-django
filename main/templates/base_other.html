@@ -3,20 +3,20 @@
 <div class="margins">
     <div style="height: 20px;"></div>
     <div style="text-align: center; margin-bottom: 10%;">
-        <h5 style="font-weight: bold;" class="break-word">{{ owner["name"] }}</h5>
+        <h5 style="font-weight: bold;" class="break-word">{{ owner.name }}</h5>
         <p>
-            ID: {{ owner["id"] }}
+            ID: {{ owner.id }}
             |
-            {{ owner["grade"] }}年级
+            {{ owner.grade }}年级
             |
             {{ {"男": "♂", "女": "♀", "保密": "性别保密"}[owner["sex"]] }}
         </p>
         <p class="break-word">
-            {{ owner["introduction"] }}
+            {{ owner.introduction }}
         </p>
         {% if owner["tags"] != "无认证信息" %}
         <p style="font-weight: bold;">
-            认证: {{ owner["tags"] }}
+            认证: {{ owner.tags }}
         </p>
         {% endif %}
     </div>
@@ -29,7 +29,7 @@
                 <path d="M9 22V12h6v10M2 10.6L12 2l10 8.6" />
             </svg>
         </a>
-        <a href="/user/{{ owner['id'] }}">
+        <a href="/user/{{ owner.id }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                 stroke="#33CCCC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3" />
@@ -37,7 +37,7 @@
                 <circle cx="12" cy="12" r="10" />
             </svg> </a>
         </a>
-        {% if owner["id"] == user["id"] %}
+        {% if owner.id == user.id %}
         <a href="/article/write">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                 stroke="#33CCCC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

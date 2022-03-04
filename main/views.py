@@ -1,5 +1,4 @@
 import base64
-import re
 
 # Create your views here.
 
@@ -7,135 +6,13 @@ import hashlib
 import os
 import time
 
-import lightmysql
-from flask import *
-
 from django.shortcuts import render
-from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound, Http404
+from QAGT.models import *
 
-app = Flask(__name__)
-app.secret_key = "QABBQ"
 thisDir = os.path.dirname(os.path.abspath(__file__))
-mysql = lightmysql.Connect("alimysql.yixiangzhilv.com",
-                           "yxzl",
-                           "@wangzihan*yixiangzhilv20070601",
-                           "qabbq",
-                           pool_size=10)
 signs = []
 
-
-class Users:
-    users = {}
-    blacklist = []
-    data = [
-        "id", "name", "password", "email", "real_name", "real_name_md5", "sex",
-        "grade", "introduction", "tags", "admin"
-    ]
-
-    def __init__(self):
-        temp = mysql.select("users", self.data)
-        for i in temp:
-            user = {self.data[j]: i[j] for j in range(len(self.data))}
-            self.users[i[0]] = user
-        return
-
-    def add(self, name, password):
-        for i, j in self.users.items():
-            if j["name"] == name:
-                return "用户名已存在"
-        user = {"name": name, "password": password}
-        user["tags"] = "无认证信息"
-        user["sex"] = user["grade"] = "保密"
-        user["introduction"] = user["real_name"] = user["email"] = ""
-        mysql.insert("users", user)
-        user["id"] = mysql.select("users", ["id"], {"name": name})[0][0]
-        self.users[user["id"]] = user
-        return user
-
-    def update(self, num, values):
-        if values["real_name"]:
-            values["real_name_md5"] = get_md5(values["real_name"])
-        mysql.update("users", values, {"id": num})
-        temp = mysql.select("users", self.data, {"id": num})[0]
-        user = {self.data[j]: temp[j] for j in range(len(self.data))}
-        self.users[num] = user
-        return user
-
-    def get_by_id(self, num):
-        return self.users.get(num) or None
-
-    def get_by_name(self, name):
-        for i in self.users.values():
-            if i["name"] == name:
-                return i
-        return None
-
-    def flush(self, num):
-        temp = mysql.select("users", self.data, {"id": num})[0]
-        user = {self.data[j]: temp[j] for j in range(len(self.data))}
-        self.users[num] = user
-        return user
-
-
-class Notices:
-    notices = {}
-
-    def add(self, user, content, url, _time=""):
-        user = int(user)
-        if not url.startswith("http"):
-            url = "https://qa.yxzl.top" + url
-        _time = _time or format_time(int(time.time()))
-        if not self.notices.get(user):
-            self.notices[user] = [[content, _time, url]]
-        elif self.notices[user][-1][0] != content:
-            self.notices[user].append([content, _time, url])
-            if len(self.notices[user]) > 10:
-                self.notices[user].pop(0)
-
-    def get(self, user):
-        user = int(user)
-        return self.notices.get(user) or []
-
-
-class Articles:
-    articles = {}
-    cnt = 0
-    cnts = {}
-
-    def __init__(self):
-        self.cnt = int(mysql.run_code("SELECT COUNT(id) FROM articles;")[0][0])
-
-    def get(self, num):
-        num = int(num)
-        if self.articles.get(num):
-            return self.articles[num]
-        else:
-            return self.reget(num)
-
-    def reget(self, num):
-        data = mysql.select("articles", condition={"id": num})[0]
-        self.articles[num] = {
-            "id": num,
-            "from": data[1],
-            "title": data[2],
-            "content": data[3],
-            "time": data[4]
-        }
-        return self.articles[num]
-
-    def get_user_atcs(self, user):
-        user = int(user)
-        if self.cnts.get(user):
-            return self.cnts[user]
-        else:
-            self.cnts[user] = mysql.run_code(
-                f"SELECT COUNT(id) FROM articles WHERE `from`={user};")[0][0]
-            return self.cnts[user]
-
-
-users = Users()
-notices = Notices()
-articles = Articles()
 infos = {"上次数据更新时间戳": 0}
 start_info = {"time": int(time.time()), "request_cnt": 0}
 
@@ -150,7 +27,7 @@ def get_base64(s):
     return str(base64.b64encode(s.encode("utf-8")), "utf-8")
 
 
-def format_time(s):
+def format_time(s=time.time()):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(s))
 
 
@@ -184,31 +61,33 @@ def user_login(request):
     info_init()
     if request.method == "POST":
         name = request.POST.get("name")
-        password = request.POST.get(
-            "password")  #我不知道这个要不要改成GET.get--Iron_Grey_
+        password = request.POST.get("password")
+        # res = post_check([name, password], "login", request.POST.get("sign"))
+        # if res:
+        # return HttpResponseForbidden(res)
         if name and password:
-            user = users.get_by_name(name)
-            if user:
-                if user["id"] in users.blacklist or user["password"] == "封号":
-                    return "用户已被封禁"
-                elif user["password"] == password:
-                    request.session["user"] = user
-                    # request.session["user"] = user
+            try:
+                user = Users.objects.get(name=name)
+                if user.block not in [None, 0]:
+                    return HttpResponse("用户已被封禁")
+                elif user.password == password:
+                    request.session["user"] = user.id
                     return HttpResponse("Success")
                 else:
                     return HttpResponse("密码错误")
-            else:
-                request.session["user"] = users.add(name, password)
-                # request.session["user"] = users.add(name, password)
+            except Users.DoesNotExist as e:
+                print(e)
+                Users.objects.create(name=name, password=password)
+                request.session["user"] = Users.objects.get(name=name).id
                 return HttpResponse("Success")
         else:
             return HttpResponse("用户名或密码不能为空")
-    return render(request, "login.html")  #这个后面需要加花括号吗--Iron_Grey_
+    return render(request, "login.html")
 
 
 def user_logout(request):
     del request.session["user"]
-    return HttpResponseRedirect("/")  #我也不知道这个怎么改--Iron_Grey_
+    return HttpResponseRedirect("/")
 
 
 def dashboard(request):
@@ -240,12 +119,6 @@ def dashboard(request):
     return render(request, "dashboard.html", {"data": infos})
 
 
-# @app.route("/search", methods=["GET", "POST"])
-# def search():
-#     user = int(request.values.get("user") or 0)
-#     return "搜索功能暂未开放"
-
-
 def search(request):
     user = int(request.GET.get("user") or 0)
     return HttpResponse("搜索功能暂未开放")
@@ -254,133 +127,85 @@ def search(request):
 def index(request):
     info_init()
     page = int(request.GET.get("page") or 1)
-    if request.GET.get("hide") == "false":
-        _article = mysql.run_code(
-            f"SELECT * FROM articles ORDER BY `id` DESC LIMIT {(page - 1) * 15}, 15;"
-        )
-    else:
-        _article = mysql.run_code(
-            f"SELECT * FROM articles WHERE `hide`=0 OR `hide` IS NULL ORDER BY `id` DESC LIMIT {(page - 1) * 15}, 15;"
-        )
-    _top = mysql.select("articles", condition={"top": 1})
+    _article = Articles.objects.filter(
+        state__gte=0).order_by("id")[(page - 1) * 15:page * 15]
+    _top = Articles.objects.filter(state__gte=3)
     article = []
     top = []
-    for i in (_article + _top):
-        t = {
-            "id": i[0],
-            "from": i[1],
-            "title": i[2],
-            "content": i[3],
-            "time": format_time(int(i[4])),
-            "writer": users.get_by_id(i[1]),
-            "top": i[5]
-        }
-        if i[5]:
-            t["title"] = "【置顶】" + t["title"]
-            if t not in top:
-                top.append(t)
+    for i in (_article | _top):
+        if i.state >= 3:
+            i.title = "【置顶】" + i.title
+            if i not in top:
+                top.append(i)
         else:
-            article.append(t)
-    article = top + article
-    return render(request, "index.html", {
-        "articles": article,
-        "page": page,
-        "pages": articles.cnt // 15 + 1
-    })
+            article.append(i)
+    article = top[::-1] + article[::-1]
+    return render(
+        request, "index.html", {
+            "articles": article,
+            "page": page,
+            "pages": Articles.objects.all().count() // 15 + 1
+        })
 
 
 def user_page(request, user_id):
     info_init()
-    if users.get_by_id(user_id) is None:
-        abort(404)
+    if not Users.objects.filter(id=user_id).exists():
+        raise Http404("用户不存在")
+    user = Users.objects.get(id=user_id)
     page = int(request.GET.get("page") or 1)
-    if request.GET.get("hide") == "false":
-        _article = mysql.run_code(
-            f"SELECT * FROM articles WHERE `from`={user_id} ORDER BY `id` DESC LIMIT {(page - 1) * 15}, 15;"
-        )
-    else:
-        _article = mysql.run_code(
-            f"SELECT * FROM articles WHERE `from`={user_id} AND (`hide`<=1 OR `hide` IS NULL) ORDER BY `id` DESC LIMIT {(page - 1) * 15}, 15;"
-        )
-    _top = mysql.select("articles", condition={"top": 1, "from": user_id})
+    _article = Articles.objects.filter(
+        state__gte=-1, author=user).order_by("id")[(page - 1) * 15:page * 15]
+    _top = Articles.objects.filter(state__gte=1, author=user)
     article = []
     top = []
-    for i in (_article + _top):
-        t = {
-            "id": i[0],
-            "from": i[1],
-            "title": i[2],
-            "content": i[3],
-            "time": format_time(int(i[4])),
-            "writer": users.get_by_id(i[1]),
-            "top": i[5]
-        }
-        if i[5]:
-            t["title"] = "【置顶】" + t["title"]
-            if t not in top:
-                top.append(t)
+    for i in (_article | _top):
+        if i.state >= 1:
+            i.title = "【置顶】" + i.title
+            if i not in top:
+                top.append(i)
         else:
-            article.append(t)
-    article = top + article
+            article.append(i)
+    article = top[::-1] + article[::-1]
     return render(
         request, "user_page.html",
-        dict(owner=users.get_by_id(user_id),
+        dict(owner=user,
              articles=article,
              page=page,
-             pages=articles.get_user_atcs(user_id) // 15 + 1))
+             pages=Articles.objects.filter(author=user).count() // 15 + 1))
 
 
-def article_writing(request):
+def article_write(request):
     info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
     if request.method == "POST":
-        if post_check([
-                request.session["user"]["name"], request.POST["title"],
-                request.POST["content"]
-        ], "article", request.POST["sign"]):
-            return HttpResponseForbidden("签名校验错误")
         if request.GET["update"] == "true":
-            mysql.update(
-                "articles", {
-                    "title": request.POST["title"],
-                    "content": request.POST["content"],
-                    "time": int(time.time()),
-                }, {"id": request.GET["id"]})
-            articles.reget(request.GET["id"])
-            return HttpResponse(request.GET["id"])
-        mysql.insert(
-            "articles", {
-                "from": request.session["user"]["id"],
-                "title": request.POST["title"],
-                "content": request.POST["content"],
-                "time": int(time.time())
-            })
-        articles.cnt += 1
-        articles.get_user_atcs(request.session["user"]["id"])
-        articles.cnts[request.session["user"]["id"]] += 1
+            atc = Articles.objects.get(id=request.GET["id"])
+            atc.title = request.POST["title"]
+            atc.content = request.POST["content"]
+            atc.time = int(time.time())
+            atc.save()
+            return HttpResponse(atc.id)
+        t = int(time.time())
+        Articles.objects.create(
+            author=Users.objects.get(id=request.session["user"]),
+            title=request.POST["title"],
+            content=request.POST["content"],
+            time=t)
         return HttpResponse(
-            str(
-                mysql.select("articles",
-                             condition={
-                                 "from": request.session["user"]["id"],
-                                 "title": request.POST["title"],
-                                 "content": request.POST["content"]
-                             })[-1][0]))
-    else:
-        if request.GET.get("id") and request.GET["id"].isdigit():
-            data = mysql.select("articles", ["from", "title", "content", "id"],
-                                {"id": int(request.GET["id"])})[0]
-            if request.session["user"]["id"] == data[0]:
-                data = {
-                    "from": data[0],
-                    "title": data[1],
-                    "content": data[2],
-                    "id": data[3]
-                }
-                return render(request, "article-writing.html", {"data": data})
-        return render(request, "article-writing.html", {"data": {}})
+            Articles.objects.get(author=request.session["user"], time=t).id)
+
+    if request.GET.get("id") and request.GET["id"].isdigit():
+        try:
+            data = Articles.objects.get(id=int(request.GET["id"]))
+            if request.session["user"] == data.author.id:
+                return render(request, "article-write.html", {"data": data})
+        except:
+            ...
+
+    return render(request, "article-write.html", {"data": None})
 
 
 def article_delete(request, atc_id):
@@ -388,18 +213,14 @@ def article_delete(request, atc_id):
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
-    atc = articles.get(atc_id)
-    if atc.get("from") != request.session["user"]["id"]:
-        raise HttpResponseForbidden("您不是该文章作者！")
+    atc = Articles.objects.get(id=atc_id)
+    if atc.author.id != request.session["user"]:
+        return HttpResponseForbidden("您不是该文章作者！")
     try:
-        mysql.delete("articles", {"id": atc_id})
-        articles.cnt -= 1
-        articles.articles.pop(atc_id)
-        # flash("删除成功！")
+        atc.delete()
     except Exception as e:
         ...
-        # flash(f"删除失败！\n<br />\n{e}")
-    return HttpResponseRedirect(f"/user/{request.session['user']['id']}")
+    return HttpResponseRedirect(f"/user/{request.session['user']}")
 
 
 #@app.route('/image-upload', methods=['POST'])
@@ -417,105 +238,59 @@ def make_notice(request):
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
-    to = request.GET["to"]
-    at = request.GET["at"]
-    if at == "article":
-        notices.add(
-            to,
-            f"{request.session['user']['name']}在文章：{articles.get(request.GET['atc'])['title']}下提到了你",
-            f"/article/{request.GET['atc']}")
+    # to = request.GET["to"]
+    # at = request.GET["at"]
+    # if at == "article":
+    #     notices.add(
+    #         to,
+    #         f"{request.session['user']['name']}在文章：{articles.get(request.GET['atc'])['title']}下提到了你",
+    #         f"/article/{request.GET['atc']}")
     return HttpResponse("Success")
 
 
 def article_page(request, atc_id):
     info_init()
     if request.method == "POST":
-        if post_check([
-                request.session["user"]["name"],
-                str(atc_id), request.POST["comment"]
-        ], "comment", request.POST["sign"]):
-            return HttpResponseForbidden("签名校验错误")
-        if not request.session.get("user"):
-            return HttpResponseRedirect("/user/login?from=" +
-                                        request.build_absolute_uri())
-        mysql.insert(
-            "comments", {
-                "from": request.session.get("user")["id"],
-                "under": atc_id,
-                "content": request.POST["comment"],
-                "time": int(time.time())
-            })
-        notices.add(
-            articles.get(atc_id)["from"],
-            f"{request.session['user']['name']}评论了你的文章：{articles.get(atc_id)['title']}",
-            f"/article/{atc_id}")
-        # return HttpResponseRedirect("/article/%d" % atc_id)
+        Comments.objects.create(author_id=request.session["user"], under_id=atc_id,content=request.POST["comment"],time=format_time())
         return HttpResponse("Success")
-    _article = mysql.select("articles", ["from", "title", "content", "time"],
-                            {"id": atc_id})
-    if not _article:
+
+    try:
+        article = Articles.objects.get(id=atc_id)
+        _comments = Comments.objects.filter(under=article, state__gte=0)
+        comment = []
+        top = []
+        for i in _comments:
+            comment.append(i)
+            if i.state == 1:
+                top.append(comment[-1])
+        return render(
+            request, "article.html",
+            dict(article=article,
+                 comment=comment,
+                 top=top,
+                 owner=article.author))
+    except Exception as e:
+        print(e)
         return HttpResponseNotFound("文章不存在！")
-    else:
-        _article = _article[0]
-    article = {
-        "id": atc_id,
-        "from": _article[0],
-        "title": _article[1],
-        "content": _article[2],
-        "time": time.strftime("%Y年%m月%d日 %H:%M:%S",
-                              time.localtime(_article[3]))
-    }
-    _comments = mysql.select("comments",
-                             target=["from", "content", "time", "top"],
-                             condition={"under": atc_id})
-    comment = []
-    top = []
-    for i in _comments:
-        comment.append({
-            "from": users.get_by_id(i[0]),
-            "content": i[1],
-            "time": format_time(i[2]),
-            "top": i[3]
-        })
-        if i[3]:
-            top.append(comment[-1])
-    return render(
-        request, "article.html",
-        dict(article=article,
-             comments=comment,
-             tops=top,
-             writer=users.get_by_id(article["from"]),
-             owner=users.get_by_id(article["from"])))
 
 
 def edit_information(request):
     info_init()
-    # if not request.session.get("user"):
-    #     return HttpResponseRedirect("/user/login?from=" + request.build_absolute_uri())
     if request.method == "POST":
         values = request.POST.dict()
         if values["sex"] not in ["男", "女"]:
             values["sex"] = "保密"
-        request.session["user"] = users.update(request.session["user"]["id"],
-                                               values)
-        # flash("信息修改成功！")
+        if values.get("real_name"):
+            values["real_name_md5"] = get_md5(values["real_name"])
+        user = Users.objects.get(id=request.session["user"])
+        for i, j in values.items():
+            user.__setattr__(i, j)
+        user.save()
         return HttpResponseRedirect("/user/edit")
     else:
         return render(request, "edit_information.html")
 
 
-def flush_user(request, user_id):
-    info_init()
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
-    if not request.session["user"]["admin"]:
-        raise HttpResponseForbidden
-    users.flush(user_id)
-    return HttpResponse("OK")
-
-
-@app.route("/report/article/<int:atc_id>")  #这个不会改--Iron_Grey_
 def report_article(atc_id):
     info_init()
     if not request.session.get("user"):
@@ -822,28 +597,9 @@ def test(request):
     return HttpResponse("123")
 
 
-@app.route("/404")  #这个不会改--Iron_Grey_
-@app.errorhandler(404)
 def error_404(error):
     return render_template("404.html"), 404
 
 
-@app.route("/410")  #这个不会改--Iron_Grey_
-@app.errorhandler(410)
 def error_410(error):
     return HttpResponseRedirect("/user/logout")
-
-
-@app.context_processor  #这个不会改--Iron_Grey_
-def default():
-    return {
-        "user":
-        request.session.get("user"),
-        "title":
-        "QA瓜田",
-        "logined":
-        bool(request.session.get("user")),
-        "notice":
-        request.session.get("user")
-        and notices.get(request.session["user"]["id"])[::-1] or [],
-    }

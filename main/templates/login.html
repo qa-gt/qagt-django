@@ -28,6 +28,7 @@
                         style="background: rgba(255, 255, 255, 0.5)" placeholder="请输入密码"></p>
                 <p style="display: inline;">
                     <button class="btn btn-primary form-control" type="button" onclick="login()">登录</button>
+                    <!-- <button class="btn btn-primary form-control" type="button" onclick="login()">注册</button> -->
                     <a href="/">
                         <button class="btn btn-primary form-control" type="button"
                             style="margin-top: 4px;">返回首页</button>
@@ -49,6 +50,8 @@
 
 <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="https://cdn.staticfile.org/blueimp-md5/2.9.0/js/md5.min.js"></script>
+<script src="/static/js/sign.min.js"></script>
 <script>
     function getQueryVariable(variable) {
         const query = window.location.search.substring(1);
@@ -63,13 +66,14 @@
     }
 
     function login() {
-        if($("#username").val() == "" || $("#password").val() == "") {
+        if ($("#username").val() == "" || $("#password").val() == "") {
             alert("请输入用户名和密码");
             return;
         }
         $.post("", {
             "name": $("input#username").val(),
             "password": $("input#password").val(),
+            "sign": Sign([$("input#username").val(), $("input#password").val()], "login")
         }, function (result) {
             if (result === "Success") {
                 alert("登录成功！");

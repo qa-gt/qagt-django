@@ -1,22 +1,22 @@
 {% extends "base_other.html" %}
-{% block title %}{{ owner['name'] }} - 用户页{% endblock %}
+{% block title %}{{ owner.name }} - 用户页{% endblock %}
 {% block center_right %}
 <div class="article-list">
     <h4>
-        贴子列表<small>&emsp;第{{ page }}/{{ pages }}页&ensp;<a href="/search?user={{ owner['id'] }}">搜索</a></small>
+        贴子列表<small>&emsp;第{{ page }}/{{ pages }}页&ensp;<a href="/search?user={{ owner.id }}">搜索</a></small>
     </h4>
     <hr />
     {% for i in articles %}
     <div class="article-items">
-        <a href="/article/{{ i['id'] }}" target="_blank">
+        <a href="/article/{{ i.id }}" target="_blank">
             <div class="article-items-introduction">
-                <h5 style="font-weight: bold;">{{ i["title"] }}</h5>
+                <h5 style="font-weight: bold;">{{ i.title }}</h5>
                 <h6 style="font-size: small;">
-                    {{ i["writer"]["name"] }}
+                    {{ i.author.name }}
                     &emsp;
-                    {{ i["time"] }}
+                    {{ i.update_time }}
                 </h6>
-                <p>{{ i["content"][:100] }}</p>
+                <p>{{ i.content[:150] }}</p>
             </div>
         </a>
     </div>
