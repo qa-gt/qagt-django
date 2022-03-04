@@ -109,13 +109,13 @@ if QAGT_DEVELOPMENT:
 else:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-            'HOST': "alimysql.yixiangzhilv.com",  # 数据库ip
-            'PORT': 3306,  # 数据库端口
-            'USER': "yxzl",  # 用户名
-            'PASSWORD': "@Danny-Yxzl*20180401",  # 密码
-            'NAME': "qabbq",  # 数据库名
-        },
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'qagttest',
+            'USER': 'yxzl',
+            'PASSWORD': '@yixiangzhilv',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+        }
     }
 
 # Password validation
