@@ -68,7 +68,7 @@ def user_login(request):
         if name and password:
             try:
                 user = Users.objects.get(name=name)
-                if user.block not in [None, 0]:
+                if user.state <= -3:
                     return HttpResponse("用户已被封禁")
                 elif user.password == password:
                     request.session["user"] = user.id
