@@ -30,7 +30,8 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Users(models.Model):
-    id = models.IntegerField(primary_key=True, auto_created=True, unique=True)
+    # id = models.IntegerField(primary_key=True, unique=True)
+    id = models.AutoField(primary_key=True, unique=True)
     name = models.CharField(max_length=30, unique=True)
     password = models.CharField(max_length=30)
     real_name = models.CharField(max_length=6,
@@ -81,14 +82,14 @@ class Users(models.Model):
 
 
 class Articles(models.Model):
-    id = models.IntegerField(primary_key=True, auto_created=True, unique=True)
+    id = models.AutoField(primary_key=True, unique=True)
     author = models.ForeignKey(Users,
                                on_delete=models.CASCADE,
                                related_name='articles')
     title = models.CharField(max_length=100)
     content = models.TextField()
-    create_time = models.CharField(max_length=50, default="")
-    update_time = models.CharField(max_length=50)
+    create_time = models.BigIntegerField()
+    update_time = models.BigIntegerField()
     state = models.SmallIntegerField(null=True,
                                      blank=True,
                                      default=0,
@@ -113,7 +114,7 @@ class Articles(models.Model):
 
 
 class Comments(models.Model):
-    id = models.IntegerField(primary_key=True, auto_created=True, unique=True)
+    id = models.AutoField(primary_key=True, unique=True)
     author = models.ForeignKey(Users,
                                on_delete=models.CASCADE,
                                related_name='comments')
@@ -121,7 +122,7 @@ class Comments(models.Model):
                               on_delete=models.CASCADE,
                               related_name='comments')
     content = models.CharField(max_length=200)
-    time = models.CharField(max_length=50)
+    time = models.BigIntegerField()
     state = models.SmallIntegerField(null=True,
                                      blank=True,
                                      default=0,

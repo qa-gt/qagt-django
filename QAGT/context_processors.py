@@ -1,3 +1,5 @@
+import time
+
 from QAGT.models import Users
 
 
@@ -9,5 +11,6 @@ def global_context(request):
         "logined":
         bool(request.session.get("user", None)),
         "title":
-        "QA瓜田"
+        "QA瓜田",
+        "format_time": lambda x: time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(x))
     }

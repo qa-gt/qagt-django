@@ -77,8 +77,10 @@ def user_login(request):
                     return HttpResponse("密码错误")
             except Users.DoesNotExist as e:
                 print(e)
-                Users.objects.create(name=name, password=password)
-                request.session["user"] = Users.objects.get(name=name).id
+                # Users.objects.create(name=name, password=password)
+                user = Users(name=name, password=password)
+                user.save()
+                request.session["user"] = user.id
                 return HttpResponse("Success")
         else:
             return HttpResponse("用户名或密码不能为空")
@@ -185,7 +187,7 @@ def article_write(request):
             atc = Articles.objects.get(id=request.GET["id"])
             atc.title = request.POST["title"]
             atc.content = request.POST["content"]
-            atc.time = int(time.time())
+            atc.update_time = int(time.time())
             atc.save()
             return HttpResponse(atc.id)
         t = int(time.time())
@@ -193,9 +195,12 @@ def article_write(request):
             author=Users.objects.get(id=request.session["user"]),
             title=request.POST["title"],
             content=request.POST["content"],
-            time=t)
+            update_time=t,
+            create_time=t,
+        )
         return HttpResponse(
-            Articles.objects.get(author=request.session["user"], time=t).id)
+            Articles.objects.get(author_id=request.session["user"],
+                                 update_time=t).id)
 
     if request.GET.get("id") and request.GET["id"].isdigit():
         try:
@@ -251,7 +256,10 @@ def make_notice(request):
 def article_page(request, atc_id):
     info_init()
     if request.method == "POST":
-        Comments.objects.create(author_id=request.session["user"], under_id=atc_id,content=request.POST["comment"],time=format_time())
+        Comments.objects.create(author_id=request.session["user"],
+                                under_id=atc_id,
+                                content=request.POST["comment"],
+                                time=int(time.time()))
         return HttpResponse("Success")
 
     try:

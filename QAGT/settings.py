@@ -99,7 +99,8 @@ WSGI_APPLICATION = 'QAGT.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-if QAGT_DEVELOPMENT:
+if QAGT_DEVELOPMENT and 0:
+    print("Use SQLite")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -107,6 +108,7 @@ if QAGT_DEVELOPMENT:
         },
     }
 else:
+    print("Use PostgreSQL")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -115,7 +117,7 @@ else:
             'PASSWORD': '@yixiangzhilv',
             'HOST': '127.0.0.1',
             'PORT': '5432',
-        }
+        },
     }
 
 # Password validation

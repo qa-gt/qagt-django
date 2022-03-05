@@ -22,7 +22,11 @@
     <h6 style="font-size: small;">
         {{ article.author.name }}
         &emsp;
-        {{ article.update_time }}
+        {% if article.create_time == article.update_time %}
+        <span>创建于{{ format_time(article.create_time) }}</span>
+        {% else %}
+        <span title="创建于{{ format_time(article.create_time) }}">更新于{{ format_time(article.update_time) }}</span>
+        {% endif %}
         &emsp;
         ID: {{ article.id }}
     </h6>
@@ -42,13 +46,14 @@
         <form style="display: inline;" target="_top">
             <textarea class="form-control" rows="3" id="comment-content" maxlength="200" placeholder="对贴子说点什么吧..."
                 style="display: inline; width: 90%;" required></textarea>
-            <button class="btn btn-primary" type="button" style="width: 10%; float: right; height: 84px; padding: 0;" onclick="comment()">
+            <button class="btn btn-primary" type="button" style="width: 10%; float: right; height: 84px; padding: 0;"
+                onclick="comment()">
                 评论
             </button>
         </form>
         <table class="table table-hover">
             {% for i in top %}
-            <tr title="发表于{{ i.time }}" class="comments-content" data-uid="{{ i.author.id }}">
+            <tr title="发表于{{ format_time(i.time) }}" class="comments-content" data-uid="{{ i.author.id }}">
                 <td>
                     置顶
                 </td>
@@ -63,7 +68,7 @@
             </tr>
             {% endfor %}
             {% for i in range(comment|length) %}
-            <tr title="发表于{{ comment[i].time }}" class="comments-content"
+            <tr title="发表于{{ format_time(comment[i].time) }}" class="comments-content"
                 data-uid="{{ comment[i].author.id }}">
                 <td>
                     {{ i + 1 }}楼
