@@ -74,7 +74,7 @@ def search(request):
 def index(request):
     page = int(request.GET.get("page") or 1)
     _article = Articles.objects.filter(
-        state__gte=0).order_by("id")[(page - 1) * 15:page * 15]
+        state__gte=0).order_by("-id")[(page - 1) * 15:page * 15]
     _top = Articles.objects.filter(state__gte=3)
     article = []
     top = []
@@ -101,7 +101,7 @@ def user_page(request, user_id):
     user = Users.objects.get(id=user_id)
     page = int(request.GET.get("page") or 1)
     _article = Articles.objects.filter(
-        state__gte=-1, author=user).order_by("id")[(page - 1) * 15:page * 15]
+        state__gte=-1, author=user).order_by("-id")[(page - 1) * 15:page * 15]
     _top = Articles.objects.filter(state__gte=1, author=user)
     article = []
     top = []
