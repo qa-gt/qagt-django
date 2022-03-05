@@ -99,26 +99,45 @@ WSGI_APPLICATION = 'QAGT.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-if QAGT_DEVELOPMENT and 0:
+DATABASES = {
+    'SQLite': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'PostgreSQLWSL': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'qagttest',
+        'USER': 'yxzl',
+        'PASSWORD': '@yixiangzhilv',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    },
+    'PostgreSQL-test': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'qagttest',
+        'USER': 'yxzl',
+        'PASSWORD': '@yixiangzhilv',
+        'HOST': 'yxzlownserveraddress.yxzl.top',
+        'PORT': '5432',
+    },
+    'PostgreSQL': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'qagt',
+        'USER': 'yxzl',
+        'PASSWORD': '@yixiangzhilv',
+        'HOST': 'yxzlownserveraddress.yxzl.top',
+        'PORT': '5432',
+    },
+}
+if os.environ.get("QAGTDB") in DATABASES.keys():
+    print(f"Use {os.environ.get('QAGTDB')}")
+    DATABASES['default'] = DATABASES[os.environ.get("QAGTDB")]
+elif QAGT_DEVELOPMENT:
     print("Use SQLite")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        },
-    }
+    DATABASES['default'] = DATABASES['SQLite']
 else:
-    print("Use PostgreSQL")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'qagttest',
-            'USER': 'yxzl',
-            'PASSWORD': '@yixiangzhilv',
-            'HOST': '127.0.0.1',
-            'PORT': '5432',
-        },
-    }
+    print("Use PostgreSQL-test")
+    DATABASES = DATABASES['PostgreSQL-test']
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

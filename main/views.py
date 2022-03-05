@@ -76,8 +76,6 @@ def user_login(request):
                 else:
                     return HttpResponse("密码错误")
             except Users.DoesNotExist as e:
-                print(e)
-                # Users.objects.create(name=name, password=password)
                 user = Users(name=name, password=password)
                 user.save()
                 request.session["user"] = user.id
