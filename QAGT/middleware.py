@@ -38,7 +38,6 @@ class PostCheckV1:
     def process_view(self, request, view_func, view_args, view_kwargs):
         if request.method == "GET":
             return None
-        print(request.POST.dict())
         view = view_func.__name__
         result = None
         if view == "article_write":
