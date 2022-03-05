@@ -518,8 +518,8 @@ def test(request):
     return HttpResponse("123")
 
 
-def error_404(request, e):
-    print(e)
+def error_404(request, exception):
+    # print(exception)
     return render(request, "404.html")
 
 
