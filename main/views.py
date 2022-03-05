@@ -1,7 +1,3 @@
-import base64
-
-# Create your views here.
-
 import hashlib
 import os
 import time
@@ -22,10 +18,6 @@ def get_md5(s):
     m = hashlib.md5()
     m.update(s.encode('utf-8'))
     return m.hexdigest()
-
-
-def get_base64(s):
-    return str(base64.b64encode(s.encode("utf-8")), "utf-8")
 
 
 def format_time(s=time.time()):
@@ -63,30 +55,14 @@ def user_logout(request):
 
 def dashboard(request):
     global infos
-    if infos["上次数据更新时间戳"] < time.time() - 600:
-        infos["注册用户数"] = mysql.run_code("SELECT COUNT(id) FROM users;")[0][0]
-        infos["文章数"] = mysql.run_code("SELECT COUNT(id) FROM articles;")[0][0]
-        articles.cnt = infos["文章数"]
-        infos["评论数"] = mysql.run_code("SELECT COUNT(id) FROM comments;")[0][0]
-        infos["管理员用户数"] = mysql.run_code(
-            "SELECT COUNT(id) FROM users WHERE `admin`=1 OR `admin`=2;")[0][0]
-        infos["被禁止首页列出的贴子数(隐藏级别为1)"] = mysql.run_code(
-            "SELECT COUNT(id) FROM articles WHERE `hide`=1;")[0][0]
-        infos["被禁止列出的贴子数(隐藏级别为2)"] = mysql.run_code(
-            "SELECT COUNT(id) FROM articles WHERE `hide`=2;")[0][0]
-        infos["置顶贴子数"] = mysql.run_code(
-            "SELECT COUNT(id) FROM articles WHERE `top`=1;")[0][0]
-        infos["置顶评论数"] = mysql.run_code(
-            "SELECT COUNT(id) FROM comments WHERE `top`=1;")[0][0]
-        infos["未处理举报数"] = mysql.run_code(
-            "SELECT COUNT(id) FROM reports;")[0][0]
-        infos["上次数据更新时间戳"] = time.time()
-        infos["上次数据更新时间"] = format_time(infos["上次数据更新时间戳"])
-        infos["本次服务器启动时间"] = format_time(start_info["time"])
+    infos["注册用户数"] = Users.objects.all().count()
+    infos["文章数"] = Articles.objects.all().count()
+    infos["评论数"] = Comments.objects.all().count()
+    infos["本次服务器启动时间"] = format_time(start_info["time"])
     t = int(time.time() - start_info["time"])
     infos[
-        "本次启动稳定运行时长（实时）"] = f"{t // 86400}天{t % 86400 // 3600}小时{t % 3600 // 60}分钟{t % 60}秒"
-    infos["本次启动后总请求数（实时）"] = start_info["request_cnt"]
+        "本次启动稳定运行时长"] = f"{t // 86400}天{t % 86400 // 3600}小时{t % 3600 // 60}分钟{t % 60}秒"
+    infos["本次启动后总请求数"] = start_info["request_cnt"]
     return render(request, "dashboard.html", {"data": infos})
 
 

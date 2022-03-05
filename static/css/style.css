@@ -370,7 +370,7 @@ ul.pagination li a:hover:not(.active) {
     background-color: #ddd;
 }
 
-.comment-content {
+.break-word {
     word-break: break-all;
 }
 

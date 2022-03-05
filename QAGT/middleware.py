@@ -18,7 +18,7 @@ def get_base64(s):
     return str(base64.b64encode(s.encode("utf-8")), "utf-8")
 
 
-def post_check(data, scene, sign):
+def post_check(data, scene, sign, save=True):
     if sign in signs:
         return "签名已存在"
     ans = ""
@@ -27,7 +27,8 @@ def post_check(data, scene, sign):
     ans += scene
     if get_md5(ans) != sign:
         return "签名错误"
-    signs.append(sign)
+    if save:
+        signs.append(sign)
     return None
 
 
@@ -53,7 +54,7 @@ class PostCheckV1:
         elif view == "user_login":
             result = post_check(
                 [request.POST["name"], request.POST["password"]], "login",
-                request.POST["sign"])
+                request.POST["sign"], save=False)
         if result:
             return HttpResponseForbidden(result)
 
