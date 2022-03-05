@@ -2,6 +2,7 @@ import base64
 import hashlib
 
 from django.http import HttpResponse, HttpResponseForbidden
+from django.utils.datastructures import MultiValueDictKeyError
 
 from .models import *
 
@@ -41,20 +42,23 @@ class PostCheckV1:
             return None
         view = view_func.__name__
         result = None
-        if view == "article_write":
-            result = post_check([
-                Users.objects.get(id=request.session["user"]).name,
-                request.POST["title"], request.POST["content"]
-            ], "article", request.POST["sign"])
-        elif view == "article_page":
-            result = post_check([
-                Users.objects.get(id=request.session["user"]).name,
-                view_kwargs["atc_id"], request.POST["comment"]
-            ], "comment", request.POST["sign"])
-        elif view == "user_login":
-            result = post_check(
-                [request.POST["name"], request.POST["password"]], "login",
-                request.POST["sign"], save=False)
+        try:
+            if view == "article_write":
+                result = post_check([
+                    Users.objects.get(id=request.session["user"]).name,
+                    request.POST["title"], request.POST["content"]
+                ], "article", request.POST["sign"])
+            elif view == "article_page":
+                result = post_check([
+                    Users.objects.get(id=request.session["user"]).name,
+                    view_kwargs["atc_id"], request.POST["comment"]
+                ], "comment", request.POST["sign"])
+            elif view == "user_login":
+                result = post_check(
+                    [request.POST["name"], request.POST["password"]], "login",
+                    request.POST["sign"], save=False)
+        except MultiValueDictKeyError:
+            return HttpResponseForbidden("缺少sign参数")
         if result:
             return HttpResponseForbidden(result)
 

@@ -74,10 +74,14 @@
             alert("请输入用户名和密码");
             return;
         }
+        let sign = Sign([$("input#username").val(), $("input#password").val()], "login");
+        if (!sign) {
+            return;
+        }
         $.post("", {
             "name": $("input#username").val(),
             "password": $("input#password").val(),
-            "sign": Sign([$("input#username").val(), $("input#password").val()], "login")
+            "sign": sign
         }, function (result) {
             if (result === "Success") {
                 alert("登录成功！");
