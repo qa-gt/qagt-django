@@ -121,7 +121,7 @@ class Comments(models.Model):
     under = models.ForeignKey(Articles,
                               on_delete=models.CASCADE,
                               related_name='comments')
-    content = models.CharField(max_length=200)
+    content = models.CharField(max_length=300)
     time = models.BigIntegerField()
     state = models.SmallIntegerField(null=True,
                                      blank=True,
