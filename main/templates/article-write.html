@@ -53,9 +53,10 @@
             return;
         }
         let sign = Sign([USERNAME, article_title.val(), article_content.val()], "article");
+        console.log(sign);
         if (!sign) {
             $(this).attr("disabled", false);
-            $(submit_button).text("重新提交");
+            $(this).text("重新提交");
             return;
         }
         $.post("/article/write?update={{ 'true' if data else 'false' }}&id={{ data and data.id or 0 }}", {

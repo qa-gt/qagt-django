@@ -7,8 +7,9 @@ import os
 import time
 
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound, Http404
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound, Http404, HttpResponseNotAllowed
 from QAGT.models import *
+from QAGT.settings import STATIC_ROOT, STATICFILES_DIRS, QAGT_SERVER
 
 thisDir = os.path.dirname(os.path.abspath(__file__))
 signs = []
@@ -31,40 +32,10 @@ def format_time(s=time.time()):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(s))
 
 
-def info_init():
-    global start_info
-    start_info["request_cnt"] += 1
-    # request.session["ip"] = request.headers.get(
-    #     "Ali-Cdn-Real-Ip") or request.remote_addr
-    # if request.session.get("user"):
-    #     if request.session["user"]["id"] in users.blacklist:
-    #         abort(410)
-    #     elif request.session["user"].get("admin"):
-    #         request.session["user"] = users.get_by_id(request.session["user"]["id"])
-
-
-def post_check(data, scene, sign):
-    # data = [request.session["user"]["name"]] + data
-    if sign in signs:
-        return "签名已存在"
-    ans = ""
-    for i in data:
-        ans += get_md5(get_base64(get_md5(str(i))))
-    ans += scene
-    if get_md5(ans) != sign:
-        return "签名错误"
-    signs.append(sign)
-    return None
-
-
 def user_login(request):
-    info_init()
     if request.method == "POST":
         name = request.POST.get("name")
         password = request.POST.get("password")
-        # res = post_check([name, password], "login", request.POST.get("sign"))
-        # if res:
-        # return HttpResponseForbidden(res)
         if name and password:
             try:
                 user = Users.objects.get(name=name)
@@ -125,7 +96,6 @@ def search(request):
 
 
 def index(request):
-    info_init()
     page = int(request.GET.get("page") or 1)
     _article = Articles.objects.filter(
         state__gte=0).order_by("id")[(page - 1) * 15:page * 15]
@@ -144,12 +114,12 @@ def index(request):
         request, "index.html", {
             "articles": article,
             "page": page,
-            "pages": Articles.objects.all().count() // 15 + 1
+            "pages": Articles.objects.filter(state__gte=0).count() // 15 + 1,
+            "footer": True
         })
 
 
 def user_page(request, user_id):
-    info_init()
     if not Users.objects.filter(id=user_id).exists():
         raise Http404("用户不存在")
     user = Users.objects.get(id=user_id)
@@ -176,7 +146,6 @@ def user_page(request, user_id):
 
 
 def article_write(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -212,7 +181,6 @@ def article_write(request):
 
 
 def article_delete(request, atc_id):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -226,18 +194,23 @@ def article_delete(request, atc_id):
     return HttpResponseRedirect(f"/user/{request.session['user']}")
 
 
-#@app.route('/image-upload', methods=['POST'])
-def upload(request):
-    info_init()
-    f = request.files.get('file')
-    name = f"{time.time()}_{f.filename}"
-    f.save(f"{thisDir}/static/article_images/{name}")
+def image_upload(request):
+    file = request.FILES["file"]
+    if file.size > 1024 * 1024 * 5:
+        return HttpResponse("文件过大！")
+    name = f"{request.session['user']}_{time.time()}.{file.name.split('.')[-1]}"
+    if QAGT_SERVER == "PRODUCTION":
+        path = f"{STATIC_ROOT}/article_images/{name}"
+    else:
+        path = f"{STATICFILES_DIRS[0]}/article_images/{name}"
+    with open(path, 'wb+') as f:
+        for chunk in file.chunks():
+            f.write(chunk)
     return HttpResponse(name)
 
 
 #@app.route("/notice")
 def make_notice(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -252,7 +225,6 @@ def make_notice(request):
 
 
 def article_page(request, atc_id):
-    info_init()
     if request.method == "POST":
         Comments.objects.create(author_id=request.session["user"],
                                 under_id=atc_id,
@@ -275,13 +247,11 @@ def article_page(request, atc_id):
                  comment=comment,
                  top=top,
                  owner=article.author))
-    except Exception as e:
-        print(e)
+    except Articles.DoesNotExist:
         return HttpResponseNotFound("文章不存在！")
 
 
 def edit_information(request):
-    info_init()
     if request.method == "POST":
         values = request.POST.dict()
         if values["sex"] not in ["男", "女"]:
@@ -298,7 +268,6 @@ def edit_information(request):
 
 
 def report_article(atc_id):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -314,7 +283,6 @@ def report_article(atc_id):
 
 #@app.route("/admin")
 def admin_index(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -325,7 +293,6 @@ def admin_index(request):
 
 #@app.route("/admin/reports", methods=["GET", "POST"])
 def admin_reports(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -349,7 +316,6 @@ def admin_reports(request):
 
 #@app.route("/admin/hidded-atc")
 def admin_hiddedatc(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -371,7 +337,6 @@ def admin_hiddedatc(request):
 
 #@app.route("/admin/top-atc", methods=["POST"])
 def admin_topatc(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -389,7 +354,6 @@ def admin_topatc(request):
 
 #@app.route("/admin/untop-atc", methods=["POST"])
 def admin_untopatc(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -407,7 +371,6 @@ def admin_untopatc(request):
 
 #@app.route("/admin/top-cmt", methods=["POST"])
 def admin_topcmt(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -428,7 +391,6 @@ def admin_topcmt(request):
 
 #@app.route("/admin/untop-cmt", methods=["POST"])
 def admin_untopcmt(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -449,7 +411,6 @@ def admin_untopcmt(request):
 
 #@app.route("/admin/hide-atc", methods=["POST"])
 def admin_hideatc(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -470,7 +431,6 @@ def admin_hideatc(request):
 
 #@app.route("/admin/del-atc", methods=["POST"])
 def admin_delatc(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -490,7 +450,6 @@ def admin_delatc(request):
 
 #@app.route("/admin/del-cmt", methods=["POST"])
 def admin_delcmt(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -508,7 +467,6 @@ def admin_delcmt(request):
 
 
 def sadmin_index(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -518,7 +476,6 @@ def sadmin_index(request):
 
 
 def sadmin_deluser(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -535,7 +492,6 @@ def sadmin_deluser(request):
 
 
 def sadmin_addadmin(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -552,7 +508,6 @@ def sadmin_addadmin(request):
 
 
 def sadmin_addtag(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())
@@ -569,7 +524,6 @@ def sadmin_addtag(request):
 
 
 def sadmin_rmdamin(request):
-    info_init()
     if not request.session.get("user"):
         return HttpResponseRedirect("/user/login?from=" +
                                     request.build_absolute_uri())

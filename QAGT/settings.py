@@ -14,21 +14,60 @@ from pathlib import Path
 import os
 
 QAGT_SERVER = os.environ.get('QAGTSERVER', "DEVELOPMENT")
-QAGT_DEVELOPMENT = QAGT_SERVER.startswith("DEVELOPMENT") and True or False
-print(f"QAGT_SERVER: {QAGT_SERVER}\nQAGT_DEVELOPMENT: {QAGT_DEVELOPMENT}")
+QAGT_POSTGRESQL = {
+    "HOST": os.environ.get('QAGTPOSTGRESQLHOST',
+                           "yxzlownserveraddress.yxzl.top"),
+    "PORT": os.environ.get('QAGTPOSTGRESQLPORT', "5432"),
+    "USER": os.environ.get('QAGTPOSTGRESQLUSER', "yxzl"),
+    "PASSWORD": os.environ.get('QAGTPOSTGRESQLPASSWORD', "@yixiangzhilv"),
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+if QAGT_SERVER.startswith("DEVELOPMENT"):
+    QAGT_SERVER = "DEVELOPMENT"
+    print("-----QAGT_SERVER is DEVELOPMENT-----")
+    DEBUG = True
+    DATABASES = {
+        "default": {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        },
+    }
+elif QAGT_SERVER.startswith("TEST"):
+    QAGT_SERVER = "TEST"
+    print("-----QAGT_SERVER is TEST-----")
+    DEBUG = True
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'qagttest',
+            'USER': QAGT_POSTGRESQL["USER"],
+            'PASSWORD': QAGT_POSTGRESQL['PASSWORD'],
+            'HOST': QAGT_POSTGRESQL["HOST"],
+            'PORT': QAGT_POSTGRESQL["PORT"],
+        },
+    }
+else:
+    QAGT_SERVER = "PRODUCTION"
+    print("-----QAGT_SERVER is PRODUCTION-----")
+    DEBUG = False
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'qagt',
+            'USER': QAGT_POSTGRESQL["USER"],
+            'PASSWORD': QAGT_POSTGRESQL['PASSWORD'],
+            'HOST': QAGT_POSTGRESQL["HOST"],
+            'PORT': QAGT_POSTGRESQL["PORT"],
+        },
+    }
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-6gq34i&n0-nqdndwa*@4+#(g_@i$5zsnume4zdj9r^5p4*1x4z'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("QAGTDEBUG") == "False" and False or QAGT_DEVELOPMENT
-print(f"DEBUG: {DEBUG}")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -53,6 +92,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "QAGT.middleware.PostCheckV1",
 ]
 
 ROOT_URLCONF = 'QAGT.urls'
@@ -95,65 +135,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'QAGT.wsgi.application'
-
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
-DATABASES = {
-    'SQLite': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    'PostgreSQLWSL': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'qagttest',
-        'USER': 'yxzl',
-        'PASSWORD': '@yixiangzhilv',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    },
-    'PostgreSQL-test': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'qagttest',
-        'USER': 'yxzl',
-        'PASSWORD': '@yixiangzhilv',
-        'HOST': 'yxzlownserveraddress.yxzl.top',
-        'PORT': '5432',
-    },
-    'PostgreSQL': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'qagt',
-        'USER': 'yxzl',
-        'PASSWORD': '@yixiangzhilv',
-        'HOST': 'yxzlownserveraddress.yxzl.top',
-        'PORT': '5432',
-    },
-    'PostgreSQL-test-local': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'qagttest',
-        'USER': 'yxzl',
-        'PASSWORD': '@yixiangzhilv',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    },
-    'PostgreSQL-local': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'qagt',
-        'USER': 'yxzl',
-        'PASSWORD': '@yixiangzhilv',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    },
-}
-if os.environ.get("QAGTDB") in DATABASES.keys():
-    print(f"Use {os.environ.get('QAGTDB')}")
-    DATABASES['default'] = DATABASES[os.environ.get("QAGTDB")]
-elif QAGT_DEVELOPMENT:
-    print("Use SQLite")
-    DATABASES['default'] = DATABASES['SQLite']
-else:
-    print("Use PostgreSQL-test")
-    DATABASES = DATABASES['PostgreSQL-test']
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

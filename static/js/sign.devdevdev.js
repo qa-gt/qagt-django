@@ -18,11 +18,11 @@ function Sign(list, scene = "default") {
             1800: 1
         },
         "article": {
-            60: 1,
-            300: 3,
-            600: 5,
-            1800: 6,
-            3600: 7,
+            60: 3,
+            300: 8,
+            600: 10,
+            1800: 18,
+            3600: 35,
         },
         "comment": {
             5: 1,
@@ -76,5 +76,6 @@ function Sign(list, scene = "default") {
     while (req[0] < now) req.shift();
     req[req.length] = parseInt(new Date().getTime() / 1000);
     window.localStorage.setItem("req_" + scene, JSON.stringify(req));
-    return md5(result);
+    result = md5(result);
+    return result;
 }
