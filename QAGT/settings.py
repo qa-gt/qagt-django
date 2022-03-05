@@ -128,6 +128,22 @@ DATABASES = {
         'HOST': 'yxzlownserveraddress.yxzl.top',
         'PORT': '5432',
     },
+    'PostgreSQL-test-local': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'qagttest',
+        'USER': 'yxzl',
+        'PASSWORD': '@yixiangzhilv',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    },
+    'PostgreSQL-local': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'qagt',
+        'USER': 'yxzl',
+        'PASSWORD': '@yixiangzhilv',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    },
 }
 if os.environ.get("QAGTDB") in DATABASES.keys():
     print(f"Use {os.environ.get('QAGTDB')}")
