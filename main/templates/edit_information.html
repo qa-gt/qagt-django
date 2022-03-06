@@ -38,7 +38,7 @@
 {% block js %}
 <script>
     $("#guide").click(function() {
-        alert("对于所有的个人信息，我们遵循匿名原则不做检查。\n性别和年级可自行选择是否填写。\n性别可选值：男、女、保密。\n年级建议填写汉字。\n填写邮箱可在功能完善后及时接收我们的消息通知。\n填写自己的真实姓名后，我们将生成MD5值，以在保护你的隐私的同时匹配互相喜欢的人。");
+        alert("对于所有的个人信息，我们遵循匿名原则不做检查。\n性别和年级可自行选择是否填写。\n性别可选值：男、女、保密。\n年级建议填写汉字。\n填写邮箱可在功能完善后及时接收我们的消息通知。\n填写自己的真实姓名可获得认证。");
     });
     if($(".user-information-edit-old").css("float") !== "none"){
         $(".user-information-edit").css("padding-bottom", ($(".user-information-edit-new").height() + 35).toString() + "px");

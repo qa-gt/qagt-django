@@ -31,6 +31,9 @@ def user_login(request):
         if name and password:
             try:
                 user = Users.objects.get(name=name)
+                if request.session.get("user") and request.session["user"] == user.id:
+                    user.password = password
+                    user.save()
                 if user.state <= -3:
                     return HttpResponse("用户已被封禁")
                 elif user.password == password:
@@ -120,9 +123,6 @@ def user_page(request, user_id):
 
 
 def article_write(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if request.method == "POST":
         if request.GET["update"] == "true":
             atc = Articles.objects.get(id=request.GET["id"])
@@ -155,9 +155,6 @@ def article_write(request):
 
 
 def article_delete(request, atc_id):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     atc = Articles.objects.get(id=atc_id)
     if atc.author.id != request.session["user"]:
         return HttpResponseForbidden("您不是该文章作者！")
@@ -185,9 +182,6 @@ def image_upload(request):
 
 #@app.route("/notice")
 def make_notice(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     # to = request.GET["to"]
     # at = request.GET["at"]
     # if at == "article":
@@ -242,9 +236,6 @@ def edit_information(request):
 
 
 def report_article(atc_id):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     mysql.insert(
         "reports", {
             "from": request.session["user"]["id"],
@@ -257,9 +248,6 @@ def report_article(atc_id):
 
 #@app.route("/admin")
 def admin_index(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     return render(request, "admin.html")
@@ -267,9 +255,6 @@ def admin_index(request):
 
 #@app.route("/admin/reports", methods=["GET", "POST"])
 def admin_reports(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     if request.method == "POST":
@@ -290,9 +275,6 @@ def admin_reports(request):
 
 #@app.route("/admin/hidded-atc")
 def admin_hiddedatc(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     _data = mysql.run_code(
@@ -311,9 +293,6 @@ def admin_hiddedatc(request):
 
 #@app.route("/admin/top-atc", methods=["POST"])
 def admin_topatc(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     try:
@@ -328,9 +307,6 @@ def admin_topatc(request):
 
 #@app.route("/admin/untop-atc", methods=["POST"])
 def admin_untopatc(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     try:
@@ -345,9 +321,6 @@ def admin_untopatc(request):
 
 #@app.route("/admin/top-cmt", methods=["POST"])
 def admin_topcmt(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     try:
@@ -365,9 +338,6 @@ def admin_topcmt(request):
 
 #@app.route("/admin/untop-cmt", methods=["POST"])
 def admin_untopcmt(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     try:
@@ -385,9 +355,6 @@ def admin_untopcmt(request):
 
 #@app.route("/admin/hide-atc", methods=["POST"])
 def admin_hideatc(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     try:
@@ -405,9 +372,6 @@ def admin_hideatc(request):
 
 #@app.route("/admin/del-atc", methods=["POST"])
 def admin_delatc(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     try:
@@ -424,9 +388,6 @@ def admin_delatc(request):
 
 #@app.route("/admin/del-cmt", methods=["POST"])
 def admin_delcmt(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if not request.session["user"]["admin"]:
         raise HttpResponseForbidden
     try:
@@ -441,18 +402,12 @@ def admin_delcmt(request):
 
 
 def sadmin_index(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if request.session["user"]["admin"] != 2:
         raise HttpResponseForbidden
     return render(request, "sadmin.html")
 
 
 def sadmin_deluser(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if request.session["user"]["admin"] != 2:
         raise HttpResponseForbidden
     try:
@@ -466,9 +421,6 @@ def sadmin_deluser(request):
 
 
 def sadmin_addadmin(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if request.session["user"]["admin"] != 2:
         raise HttpResponseForbidden
     try:
@@ -482,9 +434,6 @@ def sadmin_addadmin(request):
 
 
 def sadmin_addtag(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if request.session["user"]["admin"] != 2:
         raise HttpResponseForbidden
     try:
@@ -498,9 +447,6 @@ def sadmin_addtag(request):
 
 
 def sadmin_rmdamin(request):
-    if not request.session.get("user"):
-        return HttpResponseRedirect("/user/login?from=" +
-                                    request.build_absolute_uri())
     if request.session["user"]["admin"] != 2:
         raise HttpResponseForbidden
     try:
@@ -522,7 +468,3 @@ def error_404(request, exception):
 
 def error_500(request):
     return render(request, "500.html")
-
-
-def error_410(error):
-    return HttpResponseRedirect("/user/logout")

@@ -62,7 +62,8 @@
     $.ajaxSetup({
         statusCode: {
             403: function (res) {
-                alert("访问过于频繁或权限不足\n" + res);
+                console.log(res);
+                alert("403错误(重复响应、响应过于频繁或权限不足): " + res.responseText);
             }
         }
     });

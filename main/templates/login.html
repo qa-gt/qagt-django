@@ -85,8 +85,8 @@
         }, function (result) {
             if (result === "Success") {
                 alert("登录成功！");
-                if (getQueryVariable("from")) {
-                    window.open(getQueryVariable("from"), "_top");
+                if (getQueryVariable("next")) {
+                    window.open(getQueryVariable("next"), "_top");
                 } else {
                     window.open("/", "_top");
                 }

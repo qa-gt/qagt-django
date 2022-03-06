@@ -1,7 +1,8 @@
 import base64
 import hashlib
+import re
 
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 
 from .models import *
@@ -67,6 +68,48 @@ class PostCheckV1:
             return HttpResponseForbidden("缺少sign参数")
         if result:
             return HttpResponseForbidden(result)
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
+
+class LoginRequired:
+    requires_list = {
+        "GET": [
+            "/django-admin/", "/article/write", "/article/delete/",
+            "/user/logout", "/user/edit", "/notice/", "/admin/"
+        ],
+        "POST": [
+            "/django-admin/", "/article/", "/article/write",
+            "/article/delete/", "/user/edit", "/notice/", "/report/", "/admin/"
+        ]
+    }
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if request.session.get("user", None):
+            return None
+        for i in self.requires_list[request.method]:
+            if re.match(i, request.path):
+                return HttpResponseRedirect("/user/login?next=" + request.path)
+        return None
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
+
+class CheckMethod:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if request.method in ["GET", "POST"]:
+            return None
+        return HttpResponse("请求方法错误: " + request.method, status=405)
 
     def __call__(self, request):
         response = self.get_response(request)
