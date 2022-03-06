@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.utils.datastructures import MultiValueDictKeyError
 
 from .models import *
+import main.views
 
 signs = []
 
@@ -38,6 +39,10 @@ class PostCheckV1:
         self.get_response = get_response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+
+        # 统计的临时解决方案
+        main.views.start_info['request_cnt'] += 1
+
         if request.method == "GET":
             return None
         view = view_func.__name__
@@ -55,8 +60,10 @@ class PostCheckV1:
                 ], "comment", request.POST["sign"])
             elif view == "user_login":
                 result = post_check(
-                    [request.POST["name"], request.POST["password"]], "login",
-                    request.POST["sign"], save=False)
+                    [request.POST["name"], request.POST["password"]],
+                    "login",
+                    request.POST["sign"],
+                    save=False)
         except MultiValueDictKeyError:
             return HttpResponseForbidden("缺少sign参数")
         if result:
