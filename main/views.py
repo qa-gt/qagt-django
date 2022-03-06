@@ -4,6 +4,7 @@ import time
 
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound, Http404, HttpResponseNotAllowed
+from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from QAGT.models import *
 from QAGT.settings import STATIC_ROOT, STATICFILES_DIRS, QAGT_SERVER
 
@@ -31,7 +32,8 @@ def user_login(request):
         if name and password:
             try:
                 user = Users.objects.get(name=name)
-                if request.session.get("user") and request.session["user"] == user.id:
+                if request.session.get(
+                        "user") and request.session["user"] == user.id:
                     user.password = password
                     user.save()
                 if user.state <= -3:
@@ -52,7 +54,8 @@ def user_login(request):
 
 
 def user_logout(request):
-    del request.session["user"]
+    if request.session.get("user"):
+        del request.session["user"]
     return HttpResponseRedirect("/")
 
 
@@ -103,7 +106,7 @@ def user_page(request, user_id):
     user = Users.objects.get(id=user_id)
     page = int(request.GET.get("page") or 1)
     _article = Articles.objects.filter(
-        state__gte=-1, author=user).order_by("-id")[(page - 1) * 15:page * 15]
+        state__gte=-3, author=user).order_by("-id")[(page - 1) * 15:page * 15]
     _top = Articles.objects.filter(state__gte=1, author=user)
     article = []
     top = []
@@ -119,11 +122,14 @@ def user_page(request, user_id):
         dict(owner=user,
              articles=article,
              page=page,
-             pages=Articles.objects.filter(author=user).count() // 15 + 1))
+             pages=Articles.objects.filter(state__gte=-3, author=user).count()
+             // 15 + 1))
 
 
 def article_write(request):
     if request.method == "POST":
+        if Users.objects.get(id=request.session["user"]).state <= -1:
+            return HttpResponseForbidden("您的账号已被限制操作贴子")
         if request.GET["update"] == "true":
             atc = Articles.objects.get(id=request.GET["id"])
             atc.title = request.POST["title"]
@@ -155,20 +161,23 @@ def article_write(request):
 
 
 def article_delete(request, atc_id):
+    if Users.objects.get(id=request.session["user"]).state <= -1:
+        return HttpResponseForbidden("您的账号已被限制操作贴子")
     atc = Articles.objects.get(id=atc_id)
     if atc.author.id != request.session["user"]:
         return HttpResponseForbidden("您不是该文章作者！")
     try:
         atc.delete()
     except Exception as e:
-        ...
+        return HttpResponseRedirect(f"/article/{atc_id}")
     return HttpResponseRedirect(f"/user/{request.session['user']}")
 
 
+@require_POST
 def image_upload(request):
     file = request.FILES["file"]
     if file.size > 1024 * 1024 * 5:
-        return HttpResponse("文件过大！")
+        return HttpResponse("文件过大！", status=400)
     name = f"{request.session['user']}_{time.time()}.{file.name.split('.')[-1]}"
     if QAGT_SERVER == "PRODUCTION":
         path = f"{STATIC_ROOT}/article_images/{name}"
@@ -180,7 +189,6 @@ def image_upload(request):
     return HttpResponse(name)
 
 
-#@app.route("/notice")
 def make_notice(request):
     # to = request.GET["to"]
     # at = request.GET["at"]
@@ -194,6 +202,8 @@ def make_notice(request):
 
 def article_page(request, atc_id):
     if request.method == "POST":
+        if Users.objects.get(id=request.session["user"]).state <= -2:
+            return HttpResponseForbidden("您的账号已被限制发言")
         Comments.objects.create(author_id=request.session["user"],
                                 under_id=atc_id,
                                 content=request.POST["comment"],
@@ -202,7 +212,7 @@ def article_page(request, atc_id):
 
     try:
         article = Articles.objects.get(id=atc_id)
-        _comments = Comments.objects.filter(under=article, state__gte=0)
+        _comments = Comments.objects.filter(under=article, state__gte=0).order_by("time")
         comment = []
         top = []
         for i in _comments:

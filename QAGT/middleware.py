@@ -77,11 +77,11 @@ class PostCheckV1:
 class LoginRequired:
     requires_list = {
         "GET": [
-            "/django-admin/", "/article/write", "/article/delete/",
+            "/article/write", "/article/delete/",
             "/user/logout", "/user/edit", "/notice/", "/admin/"
         ],
         "POST": [
-            "/django-admin/", "/article/", "/article/write",
+            "/article/", "/article/write",
             "/article/delete/", "/user/edit", "/notice/", "/report/", "/admin/"
         ]
     }
@@ -91,6 +91,9 @@ class LoginRequired:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if request.session.get("user", None):
+            if Users.objects.get(id=request.session["user"]).state == -3:
+                request.session.pop("user")
+                return HttpResponseRedirect("/")
             return None
         for i in self.requires_list[request.method]:
             if re.match(i, request.path):

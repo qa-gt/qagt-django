@@ -30,7 +30,6 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Users(models.Model):
-    # id = models.IntegerField(primary_key=True, unique=True)
     id = models.AutoField(primary_key=True, unique=True)
     name = models.CharField(max_length=30, unique=True)
     password = models.CharField(max_length=30)
@@ -73,6 +72,10 @@ class Users(models.Model):
                                          (-2, "禁止发言"),
                                          (-3, "封禁帐号"),
                                      ))
+    pushplus_token = models.CharField(max_length=32,
+                                      null=True,
+                                      blank=True,
+                                      default="")
 
     def __str__(self):
         return f"{self.id} - {self.name}"
