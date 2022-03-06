@@ -392,3 +392,10 @@ ul.pagination li a:hover:not(.active) {
         display: none;
     } */
 }
+
+.comment-content-td > img {
+    width: 80%;
+    height: auto;
+    margin: 10px 10%;
+    border-radius: 10px;
+}
