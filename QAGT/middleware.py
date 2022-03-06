@@ -39,7 +39,6 @@ class PostCheckV1:
         self.get_response = get_response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-
         # 统计的临时解决方案
         main.views.start_info['request_cnt'] += 1
 

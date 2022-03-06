@@ -75,17 +75,16 @@ def index(request):
     page = int(request.GET.get("page") or 1)
     _article = Articles.objects.filter(
         state__gte=0).order_by("-id")[(page - 1) * 15:page * 15]
-    _top = Articles.objects.filter(state__gte=3)
+    _top = Articles.objects.filter(state__gte=3).order_by("-id")
     article = []
     top = []
-    for i in (_article | _top):
-        if i.state >= 3:
-            i.title = "【置顶】" + i.title
-            if i not in top:
-                top.append(i)
-        else:
+    for i in _top:
+        i.title = "【置顶】" + i.title
+        top.append(i)
+    for i in _article:
+        if i not in top:
             article.append(i)
-    article = top[::-1] + article[::-1]
+    article = top + article
     return render(
         request, "index.html", {
             "articles": article,
@@ -105,14 +104,13 @@ def user_page(request, user_id):
     _top = Articles.objects.filter(state__gte=1, author=user)
     article = []
     top = []
-    for i in (_article | _top):
-        if i.state >= 1:
-            i.title = "【置顶】" + i.title
-            if i not in top:
-                top.append(i)
-        else:
+    for i in _top:
+        i.title = "【置顶】" + i.title
+        top.append(i)
+    for i in _article:
+        if i not in top:
             article.append(i)
-    article = top[::-1] + article[::-1]
+    article = top + article
     return render(
         request, "user_page.html",
         dict(owner=user,
@@ -519,7 +517,6 @@ def test(request):
 
 
 def error_404(request, exception):
-    # print(exception)
     return render(request, "404.html")
 
 
