@@ -52,7 +52,7 @@ function Sign(list, scene = "default") {
     };
     // 校验
     if (typeof (window) === "undefined" || window === null) { return undefined; }
-    if (window.location.hostname.slice(-9) == ".yxzl.top" || window.location.hostname.slice(-17) == ".yixiangzhilv.com") { return undefined; }
+    if (window.location.hostname.slice(-9) !== ".yxzl.top" && window.location.hostname.slice(-17) !== ".yixiangzhilv.com") { return undefined; }
     if (typeof (list) === "undefined" || list === null || LIM[scene] === undefined) { return undefined; }
     if (window.localStorage.getItem("req_" + scene) === null) {
         window.localStorage.setItem("req_" + scene, JSON.stringify([]));
