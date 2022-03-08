@@ -83,6 +83,30 @@ class Users(models.Model):
         db_table = "users"
 
 
+class Topics(models.Model):
+    id = models.AutoField(primary_key=True, unique=True)
+    name = models.CharField(max_length=20, unique=True)
+    description = models.TextField(max_length=100,
+                                   null=True,
+                                   blank=True,
+                                   default="")
+    state = models.SmallIntegerField(null=True,
+                                     blank=True,
+                                     default=0,
+                                     choices=(
+                                         (1, "置顶"),
+                                         (0, "正常"),
+                                         (-1, "隐藏"),
+                                         (-2, "删除"),
+                                     ))
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
+
+    class Meta:
+        db_table = "topics"
+
+
 class Articles(models.Model):
     id = models.AutoField(primary_key=True, unique=True)
     author = models.ForeignKey(Users,
@@ -106,7 +130,10 @@ class Articles(models.Model):
                                          (-4, "禁止查看"),
                                          (-5, "删除"),
                                      ))
-    tags = models.TextField(max_length=30, null=True, blank=True, default="")
+    topic = models.ForeignKey(Topics,
+                              default=0,
+                              on_delete=models.SET_DEFAULT,
+                              related_name='articles')
     read_count = models.IntegerField(default=0)
 
     def __str__(self):

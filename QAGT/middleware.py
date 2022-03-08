@@ -9,7 +9,7 @@ from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseRedirect)
 from django.utils.datastructures import MultiValueDictKeyError
 
-import django.middleware.gzip
+import django.contrib.sessions.middleware
 from .models import *
 
 signs = []

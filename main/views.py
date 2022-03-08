@@ -202,6 +202,9 @@ def make_notice(request):
 
 
 def article_page(request, atc_id):
+    article = Articles.objects.get(id=atc_id)
+    if article.state <= -4:
+        return HttpResponseNotFound("文章不存在！")
     if request.method == "POST":
         if Users.objects.get(id=request.session["user"]).state <= -2:
             return HttpResponseForbidden("您的账号已被限制发言")
@@ -212,7 +215,6 @@ def article_page(request, atc_id):
         return HttpResponse("Success")
 
     try:
-        article = Articles.objects.get(id=atc_id)
         _comments = Comments.objects.filter(under=article,
                                             state__gte=0).order_by("time")
         comment = []
