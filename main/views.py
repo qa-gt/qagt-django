@@ -167,7 +167,8 @@ def article_delete(request, atc_id):
     if atc.author.id != request.session["user"]:
         return HttpResponseForbidden("您不是该文章作者！")
     try:
-        atc.delete()
+        atc.state = -5
+        atc.save()
     except Exception as e:
         return HttpResponseRedirect(f"/article/{atc_id}")
     return HttpResponseRedirect(f"/user/{request.session['user']}")
@@ -212,7 +213,8 @@ def article_page(request, atc_id):
 
     try:
         article = Articles.objects.get(id=atc_id)
-        _comments = Comments.objects.filter(under=article, state__gte=0).order_by("time")
+        _comments = Comments.objects.filter(under=article,
+                                            state__gte=0).order_by("time")
         comment = []
         top = []
         for i in _comments:
