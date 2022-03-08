@@ -229,6 +229,17 @@ def article_page(request, atc_id):
         return HttpResponseNotFound("文章不存在！")
 
 
+@require_POST
+def article_read_count(request):
+    try:
+        article = Articles.objects.get(id=request.POST["id"])
+        article.read_count += 1
+        article.save()
+    except Articles.DoesNotExist:
+        return HttpResponseNotFound("文章不存在！")
+    return HttpResponse("Success")
+
+
 def edit_information(request):
     if request.method == "POST":
         values = request.POST.dict()

@@ -64,9 +64,8 @@ class Users(models.Model):
                                      null=True,
                                      blank=True,
                                      choices=(
-                                         (3, "超级管理员"),
-                                         (2, "全站管理员"),
-                                         (1, "话题管理员"),
+                                         (2, "超级管理员"),
+                                         (1, "管理员"),
                                          (0, "普通用户"),
                                          (-1, "禁止发贴"),
                                          (-2, "禁止发言"),
@@ -107,7 +106,8 @@ class Articles(models.Model):
                                          (-4, "禁止查看"),
                                          (-5, "删除"),
                                      ))
-    tags = models.TextField(max_length=30, null=True, blank=True)
+    tags = models.TextField(max_length=30, null=True, blank=True, default="")
+    read_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.id} - {self.title}"

@@ -1,14 +1,24 @@
 import base64
 import hashlib
+import random
 import re
+import string
 
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+import main.views
+from django.http import (HttpResponse, HttpResponseForbidden,
+                         HttpResponseRedirect)
 from django.utils.datastructures import MultiValueDictKeyError
 
+import django.middleware.gzip
 from .models import *
-import main.views
 
 signs = []
+
+
+def random_str(length=32):
+    return ''.join(
+        random.choice(string.ascii_letters + string.digits)
+        for _ in range(length))
 
 
 def get_md5(s):
@@ -64,8 +74,14 @@ class PostCheckV1:
                     "login",
                     request.POST["sign"],
                     save=False)
+            elif view == "article_read_count":
+                result = post_check(
+                    [str(request.POST["id"]), request.session["key"]],
+                    "read_count",
+                    request.POST["sign"],
+                    save=False)
         except MultiValueDictKeyError:
-            return HttpResponseForbidden("缺少sign参数")
+            return HttpResponseForbidden("缺少签名参数")
         if result:
             return HttpResponseForbidden(result)
 
@@ -77,31 +93,46 @@ class PostCheckV1:
 class LoginRequired:
     requires_list = {
         "GET": [
-            "/article/write", "/article/delete/",
-            "/user/logout", "/user/edit", "/notice/", "/admin/"
+            "/article/write", "/article/delete/", "/user/logout", "/user/edit",
+            "/notice/", "/admin/"
         ],
         "POST": [
-            "/article/", "/article/write",
-            "/article/delete/", "/user/edit", "/notice/", "/report/", "/admin/"
+            "/article/^[0-9]", "/article/write", "/article/delete/",
+            "/user/edit", "/notice/", "/report/", "/admin/"
         ]
     }
 
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
+    def __call__(self, request):
+        # 检查是否已经登录
         if request.session.get("user", None):
+            # 已经登录，检查是否被封号
             if Users.objects.get(id=request.session["user"]).state == -3:
                 request.session.pop("user")
                 return HttpResponseRedirect("/")
-            return None
-        for i in self.requires_list[request.method]:
-            if re.match(i, request.path):
-                return HttpResponseRedirect("/user/login?next=" + request.path)
-        return None
+        else:
+            # 未登录，正则检查本次请求是否需要登录
+            for i in self.requires_list[request.method]:
+                if re.match(i, request.path):
+                    if request.method == "GET":
+                        return HttpResponseRedirect(
+                            "/user/login?next=" +
+                            request.headers.get("Referer") or request.path)
+                    elif request.method == "POST":
+                        return HttpResponseForbidden("请先登录")
 
-    def __call__(self, request):
+        # 设置客户端key
+        if not request.session.get("key", None):
+            request.session["key"] = random_str(16)
+
         response = self.get_response(request)
+
+        # 如果客户端cookie中没有key则设置
+        if not request.COOKIES.get("key", None):
+            response.set_cookie("key", request.session["key"])
+
         return response
 
 
@@ -109,11 +140,21 @@ class CheckMethod:
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        if request.method in ["GET", "POST"]:
-            return None
-        return HttpResponse("请求方法错误: " + request.method, status=405)
-
     def __call__(self, request):
+        # 检查请求方法
+        if request.method not in ["GET", "POST"]:
+            return HttpResponse("请求方法错误: " + request.method, status=405)
+
+        # 检查User-Agent头和POST请求的Referer头
+        if not request.headers.get("User-Agent") or not any(
+                i in request.headers["User-Agent"]
+                for i in ['Chrome', 'Safari', 'Mozilla', 'Firefox']):
+            return HttpResponseForbidden("请求校验失败")
+        if request.method == "POST":
+            if not request.headers.get("Referer"):
+                return HttpResponseForbidden("请求校验失败")
+
+        # 获取响应数据
         response = self.get_response(request)
+
         return response
