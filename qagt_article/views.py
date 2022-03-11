@@ -31,11 +31,14 @@ def article_page(request, atc_id):
             comment.append(i)
             if i.state == 1:
                 top.append(comment[-1])
+        likes = Likes.objects.filter(article=article)
         return render(
             request, "article.html",
             dict(article=article,
                  comment=comment,
                  top=top,
+                 likes=likes[:len(likes) - 1],
+                 likes_last=likes[len(likes) - 1],
                  owner=article.author))
     except Articles.DoesNotExist:
         return HttpResponseNotFound("文章不存在！")
@@ -102,7 +105,8 @@ def article_delete(request, atc_id):
 
 @require_POST
 def article_like(request):
-    # Likes.
+    Likes.objects.get_or_create(user=request._user,
+                                article_id=request.POST["id"])
     return HttpResponse("Success")
 
 

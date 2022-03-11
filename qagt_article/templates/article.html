@@ -45,6 +45,13 @@
 <div class="margins">
     <div style="height: 15px;"></div>
     <div class="article-content">
+        <div>
+            <button class="btn btn-primary" onclick="like()">
+                点赞
+            </button>
+            {% for i in likes %}{{ i.user.name }}{% endfor %}{{ likes_last.user.name }}
+        </div>
+        <br />
         <form style="display: inline;" target="_top">
             <textarea class="form-control" rows="3" id="comment-content" maxlength="200"
                 placeholder="对贴子说点什么吧...(Enter换行，Ctrl+Enter发送)" style="display: inline; width: 90%;"
@@ -254,6 +261,17 @@
                 alert("举报成功");
             } else {
                 alert("举报失败: " + data);
+            }
+        });
+    }
+
+    function like() {
+        $.post(`/article/like`, { id: atc_id }, function (data) {
+            if (data === "Success") {
+                alert("点赞成功");
+                window.location.reload();
+            } else {
+                alert("点赞失败: " + data);
             }
         });
     }
