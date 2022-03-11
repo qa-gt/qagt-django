@@ -8,14 +8,18 @@ from QAGT.models import *
 # Create your views here.
 
 
-
 def admin_index(request):
     if request.method == "POST":
         if request.GET["operation"] == "article-state":
             atc = Articles.objects.get(id=request.POST["atc_id"])
             atc.state = int(request.POST["state"])
             atc.save()
-        if request.GET["operation"] == "comment-state":
+        elif request.GET["operation"] == "article-topic":
+            atc = Articles.objects.get(id=request.POST["atc_id"])
+            if Topics.objects.filter(id=request.POST["topic"]).exists():
+                atc.topic_id = int(request.POST["topic"])
+            atc.save()
+        elif request.GET["operation"] == "comment-state":
             comments = Comments.objects.filter(under=request.POST["atc_id"],
                                                state__gte=0).order_by("time")
             comment = comments[int(request.POST["floor"]) - 1]
@@ -23,23 +27,6 @@ def admin_index(request):
             comment.save()
         return HttpResponseRedirect(request.path)
     return render(request, "admin.html")
-
-
-def admin_hiddedatc(request):
-    if not request.session["user"]["admin"]:
-        raise HttpResponseForbidden
-    _data = mysql.run_code(
-        "SELECT `id`, `title`, `from`, `hide` FROM articles WHERE `hide`>=1 ORDER BY `id` DESC LIMIT 200;"
-    )
-    data = []
-    for i in _data:
-        data.append({
-            "id": i[0],
-            "title": i[1],
-            "from": users.get_by_id(i[2]),
-            "hide": i[3]
-        })
-    return render(request, "admin_hiddedatc.html", {"data": data})
 
 
 def sadmin_index(request):

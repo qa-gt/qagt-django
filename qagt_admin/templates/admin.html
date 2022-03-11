@@ -8,7 +8,7 @@
 </h5>
 <br />
 <br />
-<h4>处理文章</h4>
+<h4>处理文章状态</h4>
 <pre>
     (3, "全站置顶"),
     (2, "话题页置顶"),
@@ -26,7 +26,15 @@
 </form>
 <br />
 <br />
-<h4>处理评论</h4>
+<h4>更改文章话题</h4>
+<form action="?operation=article-topic" method="post">
+    <input type="number" name="atc_id" placeholder="文章ID" class="form-control" />
+    <input type="number" name="topic" placeholder="新话题" class="form-control" />
+    <button class="btn btn-danger" style="margin-top: 10px; width: 100%;">确认处理</button>
+</form>
+<br />
+<br />
+<h4>处理评论状态</h4>
 <pre>
     (1, "置顶"),
     (0, "正常"),
