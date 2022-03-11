@@ -1,14 +1,12 @@
 import time
 
-from QAGT.models import Users
 from QAGT.settings import DEBUG, QAGT_SERVER
 
 
 def global_context(request):
     return {
         "user":
-        request.session.get("user", None)
-        and Users.objects.get(id=request.session["user"]),
+        request._user if hasattr(request, '_user') else None,
         "logined":
         bool(request.session.get("user", None)),
         "title":

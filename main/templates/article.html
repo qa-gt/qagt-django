@@ -13,7 +13,7 @@
         <small><a href="#" onclick="delete_atc()">删除</a></small>
         {% else %}
         <small>
-            <a href="/report/article/{{ article.id }}" title="评论区吵架也可以点我">
+            <a href="#" title="评论区吵架也可以点我" onclick="report()">
                 举报
             </a>
         </small>
@@ -56,7 +56,8 @@
         </form>
         <table class="table table-hover">
             {% for i in top %}
-            <tr title="发表于{{ format_time(i.time) }}" class="comments-content" data-uid="{{ i.author.id }}">
+            <tr title="发表于{{ format_time(i.time) }}" class="comments-content" data-uid="{{ i.author.id }}"
+                data-cid="{{ i.id }}">
                 <td>
                     置顶
                 </td>
@@ -72,7 +73,7 @@
             {% endfor %}
             {% for i in range(comment|length) %}
             <tr title="发表于{{ format_time(comment[i].time) }}" class="comments-content"
-                data-uid="{{ comment[i].author.id }}">
+                data-uid="{{ comment[i].author.id }}" data-cid="{{ comment[i].id }}">
                 <td>
                     {{ i + 1 }}楼
                 </td>
@@ -95,7 +96,7 @@
 
 {% block js %}
 <script>
-    const atc_id = "{{ article.id }}";
+    const atc_id = "{{ article.id }}", uid = "{{ user.id if logined else 0 }}";
 
     // 文章阅读量统计相关
     // 获取缓存数据并解析
@@ -185,13 +186,27 @@
 
     $(".comments-content").each(function () {
         $(this).dblclick(function () {
-            $.get(`/notice?at=article&to=${$(this).attr("data-uid")}&atc=${atc_id}`, function (data) {
-                if (data === "Success") {
-                    alert("@用户成功");
-                } else {
-                    alert("失败");
-                }
-            });
+            if ($(this).data("uid") === Number(uid)) {
+                if (!confirm("确定要删除这条评论吗？")) { return; }
+                $.post("/comment/delete", {
+                    cid: $(this).data("cid")
+                }, function (data) {
+                    if (data === "Success") {
+                        alert("删除成功！");
+                        window.location.reload();
+                    } else {
+                        alert("删除失败: " + data);
+                    }
+                });
+            } else {
+                $.get(`/notice?at=article&to=${$(this).data("uid")}&atc=${atc_id}`, function (data) {
+                    if (data === "Success") {
+                        alert("@用户成功");
+                    } else {
+                        alert("失败");
+                    }
+                });
+            }
         });
     });
 </script>
@@ -229,6 +244,16 @@
             } else {
                 alert("评论失败");
                 $(this).attr("disabled", false);
+            }
+        });
+    }
+
+    function report() {
+        $.post(`/report/article/${atc_id}`, function (data) {
+            if (data === "Success") {
+                alert("举报成功");
+            } else {
+                alert("举报失败: " + data);
             }
         });
     }

@@ -19,20 +19,25 @@
             <tbody>
                 {% for i in reports %}
                 <tr>
-                    <td>{{ i["id"] }}</td>
+                    <td>{{ i.id }}</td>
                     <td>
-                        <a href="/user/{{ i['from']['id'] }}">
-                            {{ i["from"]["name"] }}
+                        <a href="/user/{{ i.reporter.id }}">
+                            {{ i.reporter.name }}
                         </a>
                     </td>
                     <td>
-                        <a href="/article/{{ i['article']['id'] }}">
-                            {{ i["article"]["title"] }}
+                        <a href="/article/{{ i.article.id }}">
+                            {{ i.article.title }}
                         </a>
                     </td>
                     <td>
-                        <form method="POST" action="?id={{ i['id'] }}" style="display: inline;" target="_top">
-                            <button class="btn btn-primary" type="submit" style="width: 100%;">解决</button>
+                        <form method="POST" action="?id={{ i.id }}&operation=accept" style="display: inline;"
+                            target="_top">
+                            <button class="btn btn-success" type="submit" style="width: 100%;">已处理</button>
+                        </form>
+                        <form method="POST" action="?id={{ i.id }}&operation=nothing" style="display: inline;"
+                            target="_top">
+                            <button class="btn btn-danger" type="submit" style="width: 100%;">未违规</button>
                         </form>
                     </td>
                 </tr>

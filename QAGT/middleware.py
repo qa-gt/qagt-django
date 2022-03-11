@@ -90,15 +90,34 @@ class PostCheckV1:
         return response
 
 
+class AdminRequired:
+    requires_list = {1: ["/admin", "/report/list"], 2: ["/sadmin"]}
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        for i, j in self.requires_list.items():
+            if hasattr(request, "_user") and i <= request._user.state:
+                continue
+            for k in j:
+                if re.match(k, request.path):
+                    return HttpResponseForbidden("此页面需要更高用户等级访问")
+
+        response = self.get_response(request)
+
+        return response
+
+
 class LoginRequired:
     requires_list = {
         "GET": [
             "/article/write", "/article/delete/", "/user/logout", "/user/edit",
-            "/notice/", "/admin/"
+            "/notice/", "/admin/", "/report/"
         ],
         "POST": [
             "/article/^[0-9]", "/article/write", "/article/delete/",
-            "/user/edit", "/notice/", "/report/", "/admin/"
+            "/user/edit", "/notice/", "/admin/", "/report/"
         ]
     }
 
@@ -109,7 +128,9 @@ class LoginRequired:
         # 检查是否已经登录
         if request.session.get("user", None):
             # 已经登录，检查是否被封号
-            if Users.objects.get(id=request.session["user"]).state == -3:
+            request.__setattr__("_user",
+                                Users.objects.get(id=request.session["user"]))
+            if request._user.state == -3:
                 request.session.pop("user")
                 return HttpResponseRedirect("/")
         else:

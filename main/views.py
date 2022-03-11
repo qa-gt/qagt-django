@@ -25,40 +25,6 @@ def format_time(s=time.time()):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(s))
 
 
-def user_login(request):
-    if request.method == "POST":
-        name = request.POST.get("name")
-        password = request.POST.get("password")
-        if name and password:
-            try:
-                user = Users.objects.get(name=name)
-                if request.session.get(
-                        "user") and request.session["user"] == user.id:
-                    user.password = password
-                    user.save()
-                if user.state <= -3:
-                    return HttpResponse("用户已被封禁")
-                elif user.password == password:
-                    request.session["user"] = user.id
-                    return HttpResponse("Success")
-                else:
-                    return HttpResponse("密码错误")
-            except Users.DoesNotExist as e:
-                user = Users(name=name, password=password)
-                user.save()
-                request.session["user"] = user.id
-                return HttpResponse("Success")
-        else:
-            return HttpResponse("用户名或密码不能为空")
-    return render(request, "login.html")
-
-
-def user_logout(request):
-    if request.session.get("user"):
-        del request.session["user"]
-    return HttpResponseRedirect("/")
-
-
 def dashboard(request):
     global infos
     infos["注册用户数"] = Users.objects.all().count()
@@ -98,32 +64,6 @@ def index(request):
             "pages": Articles.objects.filter(state__gte=0).count() // 15 + 1,
             "footer": True
         })
-
-
-def user_page(request, user_id):
-    if not Users.objects.filter(id=user_id).exists():
-        raise Http404("用户不存在")
-    user = Users.objects.get(id=user_id)
-    page = int(request.GET.get("page") or 1)
-    _article = Articles.objects.filter(
-        state__gte=-3, author=user).order_by("-id")[(page - 1) * 15:page * 15]
-    _top = Articles.objects.filter(state__gte=1, author=user)
-    article = []
-    top = []
-    for i in _top:
-        i.title = "【置顶】" + i.title
-        top.append(i)
-    for i in _article:
-        if i not in top:
-            article.append(i)
-    article = top + article
-    return render(
-        request, "user_page.html",
-        dict(owner=user,
-             articles=article,
-             page=page,
-             pages=Articles.objects.filter(state__gte=-3, author=user).count()
-             // 15 + 1))
 
 
 def article_write(request):
@@ -244,58 +184,64 @@ def article_read_count(request):
     return HttpResponse("Success")
 
 
-def edit_information(request):
+
+
+
+@require_POST
+def report_article(request, atc_id):
+    if Reports.objects.filter(reporter_id=request.session["user"],
+                              article_id=atc_id).count():
+        return HttpResponse("您已经举报过该文章")
+    Reports.objects.create(reporter_id=request.session["user"],
+                           article_id=atc_id,
+                           time=int(time.time()))
+    return HttpResponse("Success")
+
+
+def comment_delete(request):
     if request.method == "POST":
-        values = request.POST.dict()
-        if values["sex"] not in ["男", "女"]:
-            values["sex"] = "保密"
-        if values.get("real_name"):
-            values["real_name_md5"] = get_md5(values["real_name"])
-        user = Users.objects.get(id=request.session["user"])
-        for i, j in values.items():
-            user.__setattr__(i, j)
-        user.save()
-        return HttpResponseRedirect("/user/edit")
-    else:
-        return render(request, "edit_information.html")
+        try:
+            comment = Comments.objects.get(id=request.POST["cid"])
+            if comment.author_id == request.session["user"]:
+                comment.state = -2
+                comment.save()
+                return HttpResponse("Success")
+            else:
+                return HttpResponseForbidden("您不是该评论作者！")
+        except Comments.DoesNotExist:
+            return HttpResponse("评论不存在！")
+    return HttpResponse("请求错误！")
 
 
-def report_article(atc_id):
-    mysql.insert(
-        "reports", {
-            "from": request.session["user"]["id"],
-            "atc_id": atc_id,
-            "time": int(time.time())
-        })
-    # flash("举报成功！")
-    return HttpResponseRedirect("/article/%d" % atc_id)
+def report_list(request):
+    if request.method == "POST":
+        try:
+            report = Reports.objects.get(id=request.GET["id"])
+            report.state = -1 if request.GET["operation"] == "accept" else 1
+            report.operator_id = request.session["user"]
+            report.operate_time = int(time.time())
+            report.save()
+        except Reports.DoesNotExist:
+            return HttpResponseNotFound("举报不存在！")
+        return HttpResponseRedirect(request.path)
+    return render(request, "report_list.html",
+                  {"reports": Reports.objects.filter(state=0)})
 
 
-#@app.route("/admin")
 def admin_index(request):
-    if not request.session["user"]["admin"]:
-        raise HttpResponseForbidden
-    return render(request, "admin.html")
-
-
-#@app.route("/admin/reports", methods=["GET", "POST"])
-def admin_reports(request):
-    if not request.session["user"]["admin"]:
-        raise HttpResponseForbidden
     if request.method == "POST":
-        mysql.delete("reports", {"id": request.values["id"]})
-        return HttpResponseRedirect("/admin/reports")
-    data = mysql.select("reports", ["id", "from", "atc_id", "time"],
-                        order_by=["time"])
-    reports = []
-    for i in data:
-        reports.append({
-            "id": i[0],
-            "from": users.get_by_id(i[1]),
-            "article": articles.get(i[2]),
-            "time": format_time(i[3])
-        })
-    return render(request, "admin_reports.html", {"reports": reports})
+        if request.GET["type"] == "article":
+            atc = Articles.objects.get(id=request.POST["atc_id"])
+            atc.state = int(request.POST["state"])
+            atc.save()
+        if request.GET["type"] == "comment":
+            comments = Comments.objects.filter(under=request.POST["atc_id"],
+                                               state__gte=0).order_by("time")
+            comment = comments[int(request.POST["floor"]) - 1]
+            comment.state = int(request.POST["state"])
+            comment.save()
+        return HttpResponseRedirect(request.path)
+    return render(request, "admin.html")
 
 
 #@app.route("/admin/hidded-atc")

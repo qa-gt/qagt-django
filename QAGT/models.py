@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
+
 # class User(AbstractUser):
 #     grade = models.CharField(max_length=10,
 #                              null=True,
@@ -146,10 +147,10 @@ class Articles(models.Model):
 class Comments(models.Model):
     id = models.AutoField(primary_key=True, unique=True)
     author = models.ForeignKey(Users,
-                               on_delete=models.CASCADE,
+                               on_delete=models.DO_NOTHING,
                                related_name='comments')
     under = models.ForeignKey(Articles,
-                              on_delete=models.CASCADE,
+                              on_delete=models.DO_NOTHING,
                               related_name='comments')
     content = models.CharField(max_length=300)
     time = models.BigIntegerField()
@@ -168,3 +169,37 @@ class Comments(models.Model):
 
     class Meta:
         db_table = "comments"
+
+
+class Reports(models.Model):
+    id = models.AutoField(primary_key=True, unique=True)
+    reporter = models.ForeignKey(Users,
+                                 on_delete=models.DO_NOTHING,
+                                 related_name='reports')
+    article = models.ForeignKey(Articles,
+                                on_delete=models.DO_NOTHING,
+                                blank=True,
+                                null=True,
+                                default=0,
+                                related_name='reports')
+    state = models.SmallIntegerField(default=0,
+                                     choices=(
+                                         (1, "无违规"),
+                                         (0, "未处理"),
+                                         (-1, "已处理"),
+                                     ))
+    report_time = models.BigIntegerField()
+    operated_time = models.BigIntegerField()
+    operator = models.ForeignKey(
+        Users,
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        related_name="operated_reports",
+    )
+
+    def __str__(self):
+        return f"{self.id} - {self.author.name} 于 {self.article.title}"
+
+    class Meta:
+        db_table = "reports"

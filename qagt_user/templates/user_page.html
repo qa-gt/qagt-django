@@ -1,7 +1,6 @@
 {% extends "base_other.html" %}
 {% block title %}{{ owner.name }} - 用户页{% endblock %}
 {% block center_right %}
-<div class="article-list">
     <h4>
         贴子列表<small>&emsp;第{{ page }}/{{ pages }}页&ensp;<a href="/search?user={{ owner.id }}">搜索</a></small>
     </h4>
@@ -35,7 +34,6 @@
         {% endfor %}
         <li><a href="#" id="page-next">»</a></li>
     </ul>
-</div>
 {% endblock %}
 
 {% block js %}

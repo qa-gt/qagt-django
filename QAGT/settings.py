@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "QAGT.apps.QAGTConfig",
     "main.apps.MainConfig",
+    "qagt_user.apps.QagtUserConfig",
 ]
 
 MIDDLEWARE = [
@@ -94,8 +95,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "QAGT.middleware.LoginRequired",
+    "QAGT.middleware.AdminRequired",
     "QAGT.middleware.PostCheckV1",
 ]
+if QAGT_SERVER == "TEST":
+    MIDDLEWARE = ["QAGT.middleware_test.TestServerChecker"] + MIDDLEWARE
 
 ROOT_URLCONF = 'QAGT.urls'
 
@@ -104,8 +108,9 @@ TEMPLATES = [
         'BACKEND':
         'django.template.backends.jinja2.Jinja2',
         'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
-            os.path.join(BASE_DIR, 'main/templates')
+            BASE_DIR / 'templates',
+            BASE_DIR / 'main/templates',
+            BASE_DIR / 'qagt_user/templates',
         ],
         'APP_DIRS':
         True,
