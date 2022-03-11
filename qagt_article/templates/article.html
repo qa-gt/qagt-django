@@ -28,6 +28,8 @@
         <span title="创建于{{ format_time(article.create_time) }}">更新于{{ format_time(article.update_time) }}</span>
         {% endif %}
         &emsp;
+        话题: {{ article.topic.name }}
+        &emsp;
         ID: {{ article.id }}
         &emsp;
         <span id="read-count">{{ article.read_count }}</span>阅读

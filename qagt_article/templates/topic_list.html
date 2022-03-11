@@ -1,0 +1,33 @@
+{% extends "base_user.html" %}
+
+{% block title %}话题列表{% endblock %}
+
+{% block center_right %}
+<div class="article-list">
+    <h2>话题列表</h2>
+    <hr />
+    <div class="article-content">
+        <table class="table table-striped table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th>话题编号</th>
+                    <th>话题名称</th>
+                    <th>话题简介</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in topics %}
+                <tr>
+                    <td>{{ i.id }}</td>
+                    <td>{{ i.name }}</td>
+                    <td>{{ i.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{% endblock %}

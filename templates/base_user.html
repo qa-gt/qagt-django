@@ -17,7 +17,7 @@
             |
             {{ user.grade }}年级
             |
-            {{ {"男": "♂", "女": "♀", "保密": "性别保密"}[user["sex"]] }}
+            {{ {"男": "♂", "女": "♀", "保密": "性别保密"}[user.sex] }}
         </p>
         <p class="break-word">
             {{ user.introduction }}

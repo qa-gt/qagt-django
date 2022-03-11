@@ -17,6 +17,11 @@
     </div>
 
     <form action="/image-upload" class="dropzone" id="imageUpload" style="margin-top: 10px;"></form>
+
+    <input class="form-control" id="article-topic" type="number" placeholder="话题"
+        value="{{ data and data.topic_id or 0 }}" style="width: 50%; margin-top: 10px; display: inline;" required />
+    &emsp;
+    <a href="/article/topic-list" target="_blank">查看话题列表</a>
 </div>
 
 <div style="margin: 0 4%;">
@@ -33,7 +38,7 @@
 <script>
     Dropzone.options.imageUpload = {
         maxFilesize: 5,
-        maxFiles: 9,
+        maxFiles: 20,
         acceptedFiles: ".jpg,.jpeg,.png,.gif",
         success: function (file, response) {
             let textarea = $("#article-content");
@@ -42,7 +47,7 @@
     };
 </script>
 <script>
-    const article_title = $("#article-title"), article_content = $("#article-content");
+    const article_title = $("#article-title"), article_content = $("#article-content"), article_topic = $("#article-topic");
     $("#submit").click(function () {
         $(this).text("正在提交...");
         $(this).attr("disabled", true);
@@ -62,6 +67,7 @@
         $.post("/article/write?update={{ 'true' if data else 'false' }}&id={{ data and data.id or 0 }}", {
             "title": article_title.val(),
             "content": article_content.val(),
+            "topic": article_topic.val(),
             "sign": sign
         }, function (result) {
             if (result !== "") {

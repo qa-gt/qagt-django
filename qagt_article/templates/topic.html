@@ -1,12 +1,10 @@
 {% extends "base.html" %}
-{% block title %}首页{% endblock %}
+{% block title %}分类{% endblock %}
 {% block left %}
 <div class="margins">
     <div style="height: 20px;"></div>
     <!-- 登录 -->
     <div style="text-align: center; margin-bottom: 10%;">
-        <h4 style="font-weight: bold;">QA瓜田 - 首页</h4>
-        <br />
         <h5 class="break-word">
             {% if logined %}
             欢迎回来，{{ user.name }}
@@ -81,14 +79,26 @@
 {% endblock %}
 
 {% block center_right %}
+<ul class="nav nav-tabs">
+    {% for i in topics %}
+    <li class="nav-item">
+        {% if i.id == topic.id %}
+        <a class="nav-link active" href="#">{{ i.name }}</a>
+        {% else %}
+        <a class="nav-link" href="/article/topic?id={{ i.id }}">{{ i.name }}</a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+<br />
 <h4>
-    贴子列表<small>&emsp;第{{ page }}/{{ pages }}页&ensp;<a href="/article/search">搜索</a>&ensp;<a
-            href="/article/topic">话题</a></small>
+    {{ topic.id }} | {{ topic.description }}<small>&emsp;第{{ page }}/{{ pages }}页</small>
 </h4>
 <hr />
+
 {% for i in articles %}
 <div class="article-items">
-    <a href="/article/{{ i.id }}">
+    <a href="/article/{{ i.id }}" target="_blank">
         <div class="article-items-introduction">
             <h5 style="font-weight: bold;">{{ i.title }}</h5>
             <h6 style="font-size: small;">
@@ -105,11 +115,11 @@
 <hr style="width: 93%;" />
 {% endfor %}
 <ul class="pagination">
-    <li><a href="#" id="page-last">«</a></li>
+    <!-- <li><a href="#" id="page-last">«</a></li> -->
     {% for i in range(1, pages + 1) %}{% if i == page %}<li><a href="#" class="active">{{ i }}</a>
     </li>
-    {% else %}<li><a href="?page={{ i }}">{{ i }}</a></li>{% endif %}{% endfor %}
-    <li><a href="#" id="page-next">»</a></li>
+    {% else %}<li><a href="?page={{ i }}&id={{ topic.id }}">{{ i }}</a></li>{% endif %}{% endfor %}
+    <!-- <li><a href="#" id="page-next">»</a></li> -->
 </ul>
 {% endblock %}
 

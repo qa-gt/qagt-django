@@ -62,6 +62,8 @@ def article_write(request):
             atc = Articles.objects.get(id=request.GET["id"])
             atc.title = request.POST["title"]
             atc.content = request.POST["content"]
+            if Topics.objects.filter(id=request.POST["topic"]).exists():
+                atc.topic_id = int(request.POST["topic"])
             atc.update_time = int(time.time())
             atc.save()
             return HttpResponse(atc.id)
@@ -72,7 +74,8 @@ def article_write(request):
             content=request.POST["content"],
             update_time=t,
             create_time=t,
-        )
+            topic_id=int(request.POST["topic"]) if Topics.objects.filter(
+                id=request.POST["topic"]).exists() else 0)
         return HttpResponse(
             Articles.objects.get(author_id=request.session["user"],
                                  update_time=t).id)
@@ -124,14 +127,15 @@ def comment_delete(request):
     return HttpResponse("请求错误！")
 
 
-def search(request):
+def search_page(request):
     searching = bool(request.GET.get("keyword"))
     articles = []
     page = pages = 0
     if searching:
         page = int(request.GET.get("page") or 1)
         atc_list = Articles.objects.filter(
-            title__icontains=request.GET["keyword"]).order_by("-id")
+            title__icontains=request.GET["keyword"],
+            state__gte=-3).order_by("-id")
         pages = atc_list.count() // 15 + 1
         articles = atc_list[(page - 1) * 15:page * 15]
     return render(
@@ -142,3 +146,41 @@ def search(request):
             "articles": articles,
             "keyword": request.GET.get("keyword")
         })
+
+
+def topic_page(request):
+    page = int(request.GET.get("page") or 1)
+    topic = request.GET.get("id")
+    if type(topic) == int or type(topic) == str and topic.isdigit():
+        topic = int(topic)
+    else:
+        topic = 0
+
+    topics = Topics.objects.filter(state__gte=0).order_by("id")
+    topic = Topics.objects.get(id=topic)
+
+    _article = topic.articles.filter(state__gte=-1)[(page - 1) * 15:page * 15]
+    _top = topic.articles.filter(state__gte=2)
+
+    article = []
+    top = []
+    for i in _top:
+        i.title = "【置顶】" + i.title
+        top.append(i)
+    for i in _article:
+        if i not in top:
+            article.append(i)
+    article = top + article
+    return render(
+        request, "topic.html", {
+            "topic": topic,
+            "topics": topics,
+            "page": 1,
+            "pages": 1,
+            "articles": article
+        })
+
+
+def topic_list(request):
+    topics = Topics.objects.filter(state__gte=0).order_by("id")
+    return render(request, "topic_list.html", {"topics": topics})
