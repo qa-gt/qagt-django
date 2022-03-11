@@ -117,6 +117,7 @@ TEMPLATES = [
             BASE_DIR / 'qagt_user/templates',
             BASE_DIR / 'qagt_article/templates',
             BASE_DIR / 'qagt_admin/templates',
+            BASE_DIR / 'qagt_report/templates',
         ],
         'APP_DIRS':
         True,
