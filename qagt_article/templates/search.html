@@ -1,12 +1,10 @@
 {% extends "base.html" %}
-{% block title %}首页{% endblock %}
+{% block title %}搜索{% endblock %}
 {% block left %}
 <div class="margins">
     <div style="height: 20px;"></div>
     <!-- 登录 -->
     <div style="text-align: center; margin-bottom: 10%;">
-        <h4 style="font-weight: bold;">QA瓜田 - 首页</h4>
-        <br />
         <h5 class="break-word">
             {% if logined %}
             欢迎回来，{{ user.name }}
@@ -81,10 +79,18 @@
 {% endblock %}
 
 {% block center_right %}
+<form action="" method="get" class="form-inline">
+    <input class="form form-control" style="width: 85%;" name="keyword" type="text" placeholder="搜索内容（目前仅支持匹配标题）"
+        value="{{ keyword }}" />
+    <button type="submit" class="btn btn-primary" style="width: 15%;">搜索</button>
+</form>
+<br />
+{% if searching %}
 <h4>
-    贴子列表<small>&emsp;第{{ page }}/{{ pages }}页&ensp;<a href="/article/search">搜索</a></small>
+    搜索结果<small>&emsp;第{{ page }}/{{ pages }}页</small>
 </h4>
 <hr />
+
 {% for i in articles %}
 <div class="article-items">
     <a href="/article/{{ i.id }}" target="_blank">
@@ -110,6 +116,7 @@
     {% else %}<li><a href="?page={{ i }}">{{ i }}</a></li>{% endif %}{% endfor %}
     <li><a href="#" id="page-next">»</a></li>
 </ul>
+{% endif %}
 {% endblock %}
 
 {% block js %}

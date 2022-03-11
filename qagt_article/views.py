@@ -125,5 +125,20 @@ def comment_delete(request):
 
 
 def search(request):
-    user = int(request.GET.get("user") or 0)
-    return HttpResponse("搜索功能暂未开放")
+    searching = bool(request.GET.get("keyword"))
+    articles = []
+    page = pages = 0
+    if searching:
+        page = int(request.GET.get("page") or 1)
+        atc_list = Articles.objects.filter(
+            title__icontains=request.GET["keyword"]).order_by("-id")
+        pages = atc_list.count() // 15 + 1
+        articles = atc_list[(page - 1) * 15:page * 15]
+    return render(
+        request, "search.html", {
+            "searching": searching,
+            "page": page,
+            "pages": pages,
+            "articles": articles,
+            "keyword": request.GET.get("keyword")
+        })

@@ -42,9 +42,8 @@ class LoginRequired:
             for i in self.requires_list[request.method]:
                 if re.match(i, request.path):
                     if request.method == "GET":
-                        return HttpResponseRedirect(
-                            "/user/login?next=" +
-                            request.headers.get("Referer") or request.path)
+                        return HttpResponseRedirect("/user/login?next=" + (
+                            request.headers.get("Referer") or request.path))
                     elif request.method == "POST":
                         return HttpResponseForbidden("请先登录")
 
