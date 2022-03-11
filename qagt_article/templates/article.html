@@ -49,7 +49,7 @@
             <button class="btn btn-primary" onclick="like()">
                 点赞
             </button>
-            {% for i in likes %}{{ i.user.name }}{% endfor %}{{ likes_last.user.name }}
+            {% for i in likes %}{{ i.user.name }}, {% endfor %}
         </div>
         <br />
         <form style="display: inline;" target="_top">

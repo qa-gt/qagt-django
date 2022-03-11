@@ -37,8 +37,7 @@ def article_page(request, atc_id):
             dict(article=article,
                  comment=comment,
                  top=top,
-                 likes=likes[:len(likes) - 1],
-                 likes_last=likes[len(likes) - 1],
+                 likes=likes,
                  owner=article.author))
     except Articles.DoesNotExist:
         return HttpResponseNotFound("文章不存在！")
