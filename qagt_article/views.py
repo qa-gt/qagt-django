@@ -159,7 +159,8 @@ def topic_page(request):
     topics = Topics.objects.filter(state__gte=0).order_by("id")
     topic = Topics.objects.get(id=topic)
 
-    _article = topic.articles.filter(state__gte=-1)[(page - 1) * 15:page * 15]
+    _article = topic.articles.filter(
+        state__gte=-1).order_by("-id")[(page - 1) * 15:page * 15]
     _top = topic.articles.filter(state__gte=2)
 
     article = []
