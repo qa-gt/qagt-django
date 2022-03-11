@@ -100,6 +100,12 @@ def article_delete(request, atc_id):
     return HttpResponseRedirect(f"/user/{request.session['user']}")
 
 
+@require_POST
+def article_like(request):
+    # Likes.
+    return HttpResponse("Success")
+
+
 def comment_delete(request):
     if request.method == "POST":
         try:

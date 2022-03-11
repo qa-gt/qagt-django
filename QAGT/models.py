@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+# from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
@@ -226,3 +226,19 @@ class Notices(models.Model):
 
     class Meta:
         db_table = "notices"
+
+
+class Likes(models.Model):
+    id = models.AutoField(primary_key=True, unique=True)
+    article = models.ForeignKey(Articles,
+                                on_delete=models.DO_NOTHING,
+                                related_name='likes')
+    user = models.ForeignKey(Users,
+                             on_delete=models.DO_NOTHING,
+                             related_name='likes')
+
+    def __str__(self):
+        return f"{self.id} - {self.user.name} 赞了 {self.article.title}"
+
+    class Meta:
+        db_table = "likes"
