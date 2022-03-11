@@ -71,8 +71,8 @@
     <hr />
     {% for i in notice %}
     <p>
-        <a href="{{ i[2] }}">
-            {{ i[0] }} &emsp; <small>{{ i[1] }}</small>
+        <a href="{{ i.url }}" title="{{ format_time(i.time) }}">
+            {{ i.title }} &emsp; <small>{{ i.content }}</small>
         </a>
     </p>
     {% endfor %}

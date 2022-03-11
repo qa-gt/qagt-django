@@ -1,6 +1,7 @@
 import time
 
-from QAGT.settings import DEBUG, QAGT_SERVER
+from .settings import DEBUG, QAGT_SERVER
+from .models import *
 
 
 def global_context(request):
@@ -16,4 +17,7 @@ def global_context(request):
         if type(x) == int else "未知时间",
         "QAGT_SERVER":
         QAGT_SERVER,
+        "notice":
+        Notices.objects.filter(recipient=request._user).order_by("-id")[:10]
+        if hasattr(request, '_user') else [],
     }

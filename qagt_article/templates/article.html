@@ -206,7 +206,10 @@
                     }
                 });
             } else {
-                $.get(`/notice?at=article&to=${$(this).data("uid")}&atc=${atc_id}`, function (data) {
+                $.post(`/notice/make`, {
+                    at: "article",
+                    cid: $(this).data("cid")
+                }, function (data) {
                     if (data === "Success") {
                         alert("@用户成功");
                     } else {

@@ -69,8 +69,8 @@
     <hr />
     {% for i in notice %}
     <p>
-        <a href="{{ i[2] }}">
-            {{ i[0] }} &emsp; <small>{{ i[1] }}</small>
+        <a href="{{ i.url }}" title="{{ format_time(i.time) }}">
+            {{ i.title }} &emsp; <small>{{ i.content }}</small>
         </a>
     </p>
     {% endfor %}
@@ -81,7 +81,7 @@
 {% block center_right %}
 <form action="" method="get" class="form-inline">
     <input class="form form-control" style="width: 85%;" name="keyword" type="text" placeholder="搜索内容（目前仅支持匹配标题）"
-        value="{{ keyword }}" />
+        value="{{ keyword or '' }}" />
     <button type="submit" class="btn btn-primary" style="width: 15%;">搜索</button>
 </form>
 <br />
@@ -113,7 +113,7 @@
     <li><a href="#" id="page-last">«</a></li>
     {% for i in range(1, pages + 1) %}{% if i == page %}<li><a href="#" class="active">{{ i }}</a>
     </li>
-    {% else %}<li><a href="?page={{ i }}">{{ i }}</a></li>{% endif %}{% endfor %}
+    {% else %}<li><a href="?page={{ i }}&keyword={{ keyword }}">{{ i }}</a></li>{% endif %}{% endfor %}
     <li><a href="#" id="page-next">»</a></li>
 </ul>
 {% endif %}
