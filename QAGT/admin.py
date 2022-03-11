@@ -14,3 +14,7 @@ from .models import *
 admin.site.register(Users)
 admin.site.register(Articles)
 admin.site.register(Comments)
+admin.site.register(Topics)
+admin.site.register(Reports)
+admin.site.register(Notices)
+admin.site.register(Likes)
