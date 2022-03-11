@@ -188,7 +188,7 @@
         $(this).dblclick(function () {
             if ($(this).data("uid") === Number(uid)) {
                 if (!confirm("确定要删除这条评论吗？")) { return; }
-                $.post("/comment/delete", {
+                $.post("/article/comment/delete", {
                     cid: $(this).data("cid")
                 }, function (data) {
                     if (data === "Success") {

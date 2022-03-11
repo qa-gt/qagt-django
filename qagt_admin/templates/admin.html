@@ -19,7 +19,7 @@
     (-3, "禁止首页、话题和个人页列出"),
     (-4, "禁止查看"),
 </pre>
-<form action="/admin?type=article" method="post">
+<form action="?operation=article-state" method="post">
     <input type="number" name="atc_id" placeholder="文章ID" class="form-control" />
     <input type="number" name="state" placeholder="新状态" class="form-control" />
     <button class="btn btn-danger" style="margin-top: 10px; width: 100%;">确认处理</button>
@@ -33,7 +33,7 @@
     (-1, "隐藏"),
     关于楼层：置顶评论请填写在底下的真实楼层
 </pre>
-<form action="/admin?type=comment" method="post">
+<form action="?operation=comment-state" method="post">
     <input type="number" name="atc_id" placeholder="文章ID" class="form-control" />
     <input type="number" name="floor" placeholder="楼层" class="form-control" />
     <input type="number" name="state" placeholder="新状态" class="form-control" />

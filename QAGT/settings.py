@@ -83,6 +83,10 @@ INSTALLED_APPS = [
     "QAGT.apps.QAGTConfig",
     "main.apps.MainConfig",
     "qagt_user.apps.QagtUserConfig",
+    "qagt_admin.apps.QagtAdminConfig",
+    "qagt_article.apps.QagtArticleConfig",
+    "qagt_report.apps.QagtReportConfig",
+    "qagt_notice.apps.QagtNoticeConfig",
 ]
 
 MIDDLEWARE = [
@@ -94,8 +98,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "QAGT.middleware.LoginRequired",
-    "QAGT.middleware.AdminRequired",
+    "qagt_user.middleware.LoginRequired",
+    "qagt_admin.middleware.AdminRequired",
     "QAGT.middleware.PostCheckV1",
 ]
 if QAGT_SERVER == "TEST":
@@ -111,6 +115,8 @@ TEMPLATES = [
             BASE_DIR / 'templates',
             BASE_DIR / 'main/templates',
             BASE_DIR / 'qagt_user/templates',
+            BASE_DIR / 'qagt_article/templates',
+            BASE_DIR / 'qagt_admin/templates',
         ],
         'APP_DIRS':
         True,

@@ -1,0 +1,35 @@
+{% extends "base_user.html" %}
+{% block title %}超级管理员界面{% endblock %}
+{% block center_right %}
+<h2>超级管理员界面</h2>
+<hr />
+<h4>处理用户</h4>
+<pre>
+    (2, "超级管理员"),
+    (1, "管理员"),
+    (0, "普通用户"),
+    (-1, "禁止发贴"),
+    (-2, "禁止发言"),
+    (-3, "封禁帐号"),
+</pre>
+<form action="?operation=user-state" method="post">
+    <input type="number" name="uid" placeholder="用户ID" class="form-control" />
+    <input type="number" name="state" placeholder="新状态" class="form-control" />
+    <button class="btn btn-danger" style="margin-top: 10px; width: 100%;">确认处理</button>
+</form>
+<br />
+<br />
+<h4>设置认证</h4>
+<form action="?operation=user-tags" method="post">
+    <input type="text" name="uid" placeholder="用户ID" class="form-control" />
+    <input type="text" name="tags" placeholder="认证信息（默认'无认证信息'）" class="form-control" />
+    <button class="btn btn-danger" style="margin-top: 10px; width: 100%;">确认操作</button>
+</form>
+<br />
+<br />
+{% endblock %}
+
+{% block js %}
+<script>
+</script>
+{% endblock %}

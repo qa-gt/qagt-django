@@ -9,7 +9,6 @@ from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseRedirect)
 from django.utils.datastructures import MultiValueDictKeyError
 
-import django.contrib.sessions.middleware
 from .models import *
 
 signs = []
@@ -87,73 +86,6 @@ class PostCheckV1:
 
     def __call__(self, request):
         response = self.get_response(request)
-        return response
-
-
-class AdminRequired:
-    requires_list = {1: ["/admin", "/report/list"], 2: ["/sadmin"]}
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        for i, j in self.requires_list.items():
-            if hasattr(request, "_user") and i <= request._user.state:
-                continue
-            for k in j:
-                if re.match(k, request.path):
-                    return HttpResponseForbidden("此页面需要更高用户等级访问")
-
-        response = self.get_response(request)
-
-        return response
-
-
-class LoginRequired:
-    requires_list = {
-        "GET": [
-            "/article/write", "/article/delete/", "/user/logout", "/user/edit",
-            "/notice/", "/admin/", "/report/"
-        ],
-        "POST": [
-            "/article/^[0-9]", "/article/write", "/article/delete/",
-            "/user/edit", "/notice/", "/admin/", "/report/"
-        ]
-    }
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        # 检查是否已经登录
-        if request.session.get("user", None):
-            # 已经登录，检查是否被封号
-            request.__setattr__("_user",
-                                Users.objects.get(id=request.session["user"]))
-            if request._user.state == -3:
-                request.session.pop("user")
-                return HttpResponseRedirect("/")
-        else:
-            # 未登录，正则检查本次请求是否需要登录
-            for i in self.requires_list[request.method]:
-                if re.match(i, request.path):
-                    if request.method == "GET":
-                        return HttpResponseRedirect(
-                            "/user/login?next=" +
-                            request.headers.get("Referer") or request.path)
-                    elif request.method == "POST":
-                        return HttpResponseForbidden("请先登录")
-
-        # 设置客户端key
-        if not request.session.get("key", None):
-            request.session["key"] = random_str(16)
-
-        response = self.get_response(request)
-
-        # 如果客户端cookie中没有key则设置
-        if not request.COOKIES.get("key", None):
-            response.set_cookie("key", request.session["key"])
-
         return response
 
 
