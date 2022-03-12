@@ -31,7 +31,7 @@ def article_page(request, atc_id):
             content=f"用户 {request._user.name} 在你的文章《{article.title}》下发表了评论",
             time=int(time.time()),
             url=f"/article/{article.id}")
-        logger.info(f"{request._user.name} 评论了《{article.title}》",
+        logger.info(f"{request._user} 评论了《{article.title}》",
                     extra=get_extra(request))
         return HttpResponse("Success")
 
