@@ -1,13 +1,14 @@
 import base64
 import hashlib
 import random
-import re
 import string
 
 import main.views
 from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseRedirect)
 from django.utils.datastructures import MultiValueDictKeyError
+
+from QAGT import get_extra, logger
 
 from .models import *
 
@@ -80,8 +81,10 @@ class PostCheckV1:
                     request.POST["sign"],
                     save=False)
         except MultiValueDictKeyError:
+            logger.warning("POST无签名", extra=get_extra(request))
             return HttpResponseForbidden("缺少签名参数")
         if result:
+            logger.warning(f"POST签名错误: {result}", extra=get_extra(request))
             return HttpResponseForbidden(result)
 
     def __call__(self, request):
@@ -89,23 +92,31 @@ class PostCheckV1:
         return response
 
 
-class CheckMethod:
+class FirstCheck:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        request.__setattr__(
+            "ip",
+            request.headers.get("Ali-CDN-Real-IP")
+            or request.META["REMOTE_ADDR"])
+
         # 检查请求方法
         if request.method not in ["GET", "POST"]:
+            logger.warning("请求方法异常")
             return HttpResponse("请求方法错误: " + request.method, status=405)
 
         # 检查User-Agent头和POST请求的Referer头
         if not request.headers.get("User-Agent") or not any(
                 i in request.headers["User-Agent"]
                 for i in ['Chrome', 'Safari', 'Mozilla', 'Firefox']):
+            logger.warning("User-Agent异常: " + request.headers["User-Agent"],
+                           extra=get_extra(request))
             return HttpResponseForbidden("请求校验失败")
-        if request.method == "POST":
-            if not request.headers.get("Referer"):
-                return HttpResponseForbidden("请求校验失败")
+        if request.method == "POST" and not request.headers.get("Referer"):
+            logger.warning("POST请求缺少Referer头", extra=get_extra(request))
+            return HttpResponseForbidden("请求校验失败")
 
         # 获取响应数据
         response = self.get_response(request)

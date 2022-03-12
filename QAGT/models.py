@@ -199,7 +199,7 @@ class Reports(models.Model):
     )
 
     def __str__(self):
-        return f"{self.id} - {self.author.name} 于 {self.article.title}"
+        return f"{self.id} - {self.author} 举报 {self.article} 状态 {self.state}"
 
     class Meta:
         db_table = "reports"

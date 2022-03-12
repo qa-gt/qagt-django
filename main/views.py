@@ -2,11 +2,12 @@ import os
 import time
 
 import musicapi
-from django.shortcuts import render
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
+from QAGT import get_extra, logger
 from QAGT.models import *
-from QAGT.settings import STATIC_ROOT, STATICFILES_DIRS, QAGT_SERVER
+from QAGT.settings import QAGT_SERVER, STATIC_ROOT, STATICFILES_DIRS
 
 thisDir = os.path.dirname(os.path.abspath(__file__))
 
@@ -91,4 +92,5 @@ def error_404(request, exception):
 
 
 def error_500(request):
+    logger.error(f"500", extra=get_extra(request))
     return render(request, "500.html")

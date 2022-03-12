@@ -1,10 +1,13 @@
 import hashlib
+from asyncio.log import logger
 
+from django.http import (Http404, HttpResponse, HttpResponseForbidden,
+                         HttpResponseNotAllowed, HttpResponseNotFound,
+                         HttpResponseRedirect)
 from django.shortcuts import render
-
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound, Http404, HttpResponseNotAllowed
-from django.views.decorators.http import require_http_methods, require_GET, require_POST
+from django.views.decorators.http import (require_GET, require_http_methods,
+                                          require_POST)
+from QAGT import get_extra, logger
 from QAGT.models import *
 
 # Create your views here.
@@ -23,13 +26,17 @@ def user_login(request):
         if name and password:
             try:
                 user = Users.objects.get(name=name)
-                if request.session.get(
-                        "user") and request.session["user"] == user.id:
+                if request.session.get("user", -1) == user.id:
+                    logger.info(f"{user} 修改了密码({user.password}->{password})",
+                                extra=get_extra(request))
                     user.password = password
                     user.save()
                 if user.state <= -3:
-                    return HttpResponse("用户已被封禁")
+                    logger.warning(f"被封禁用户{user}尝试登录",
+                                   extra=get_extra(request))
+                    return HttpResponse("您的账号已被封禁")
                 elif user.password == password:
+                    logger.info(f"用户{user}登录成功", extra=get_extra(request))
                     request.session["user"] = user.id
                     return HttpResponse("Success")
                 else:
@@ -37,6 +44,7 @@ def user_login(request):
             except Users.DoesNotExist as e:
                 user = Users(name=name, password=password)
                 user.save()
+                logger.info(f"新用户注册：{user}", extra=get_extra(request))
                 request.session["user"] = user.id
                 return HttpResponse("Success")
         else:
@@ -87,6 +95,7 @@ def edit_information(request):
         for i, j in values.items():
             request._user.__setattr__(i, j)
         request._user.save()
+        logger.info(f"{request._user} 修改了个人信息", extra=get_extra(request))
         return HttpResponseRedirect("/user/edit")
     else:
         return render(request, "edit_information.html")

@@ -1,7 +1,7 @@
 import re
 
 from django.http import HttpResponse, HttpResponseForbidden
-
+from QAGT import get_extra, logger
 from QAGT.models import *
 
 
@@ -17,6 +17,8 @@ class AdminRequired:
                 continue
             for k in j:
                 if re.match(k, request.path):
+                    logger.warning(f"{request._user}尝试越级访问",
+                                   extra=get_extra(request))
                     return HttpResponseForbidden("此页面需要更高用户等级访问")
 
         response = self.get_response(request)

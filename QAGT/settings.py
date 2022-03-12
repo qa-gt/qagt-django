@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
+import time
 
 QAGT_SERVER = os.environ.get('QAGTSERVER', "DEVELOPMENT")
 QAGT_POSTGRESQL = {
@@ -90,7 +91,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "QAGT.middleware.CheckMethod",
+    "QAGT.middleware.FirstCheck",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -171,6 +172,53 @@ AUTH_PASSWORD_VALIDATORS = [
         'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+LOG_PATH = BASE_DIR / "logs"
+
+if not LOG_PATH.exists():
+    LOG_PATH.mkdir()
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format':
+            '[%(asctime)s] [%(filename)s:%(lineno)d] [%(module)s:%(funcName)s] '
+            '[%(levelname)s]- %(message)s'
+        },
+        'simple': {
+            'format':
+            '[%(levelname)s] %(message)s [%(asctime)s] [%(req_method)s "%(req_path)s" %(req_user)d@%(req_ip)s]',
+            "datefmt": '%Y-%m-%d %H:%M:%S',
+        },
+        'verbose': {
+            'format':
+            '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
+        }
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue'
+        }
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': LOG_PATH / ('%s.log' % time.strftime("%Y-%m-%d")),
+            'formatter': 'simple',
+            "encoding": "utf-8",
+        },
+    },
+    'loggers': {
+        'log': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    }
+}
 
 # AUTH_USER_MODEL = 'QAGT.Users'
 

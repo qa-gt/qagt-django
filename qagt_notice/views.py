@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
 from QAGT.models import *
+from QAGT import get_extra, logger
 
 
 def make_notice(request):
@@ -16,4 +17,6 @@ def make_notice(request):
             content=f"用户 {request._user.name} 在文章《{atc.title}》的评论区@了你",
             time=int(time.time()),
             url=f"/article/{atc.id}")
+        logger.info(f"{request._user} 在文章《{atc}》的评论区@了{cmt.author}",
+                    extra=get_extra(request))
     return HttpResponse("Success")

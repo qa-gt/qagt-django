@@ -1,9 +1,12 @@
 import time
 
+from django.http import (Http404, HttpResponse, HttpResponseForbidden,
+                         HttpResponseNotAllowed, HttpResponseNotFound,
+                         HttpResponseRedirect)
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound, Http404, HttpResponseNotAllowed
-from django.views.decorators.http import require_http_methods, require_GET, require_POST
-
+from django.views.decorators.http import (require_GET, require_http_methods,
+                                          require_POST)
+from QAGT import get_extra, logger
 from QAGT.models import *
 
 # Create your views here.
@@ -25,9 +28,11 @@ def article_page(request, atc_id):
         Notices.objects.get_or_create(
             recipient=article.author,
             title="有人评论了你的文章",
-            content=f"用户 {request._user.name} 在文章《{article.title}》的评论区@了你",
+            content=f"用户 {request._user.name} 在你的文章《{article.title}》下发表了评论",
             time=int(time.time()),
             url=f"/article/{article.id}")
+        logger.info(f"{request._user.name} 评论了《{article.title}》",
+                    extra=get_extra(request))
         return HttpResponse("Success")
 
     _comments = article.comments.filter(state__gte=0).order_by("time")
@@ -53,9 +58,11 @@ def article_read_count(request):
         article = Articles.objects.get(id=request.POST["id"])
         article.read_count += 1
         article.save()
+        logger.info(f"{request._user} 阅读了《{article}》",
+                    extra=get_extra(request))
+        return HttpResponse("Success")
     except Articles.DoesNotExist:
         return HttpResponseNotFound("文章不存在！")
-    return HttpResponse("Success")
 
 
 def article_write(request):
@@ -71,6 +78,8 @@ def article_write(request):
                     id=request.POST["topic"]).exists() else 0
                 atc.update_time = int(time.time())
                 atc.save()
+                logger.info(f"{request._user} 更新了《{atc}》",
+                            extra=get_extra(request))
                 return HttpResponse(atc.id)
             except Articles.DoesNotExist:
                 return HttpResponseNotFound("文章不存在！")
@@ -83,8 +92,9 @@ def article_write(request):
             create_time=t,
             topic_id=int(request.POST["topic"]) if Topics.objects.filter(
                 id=request.POST["topic"]).exists() else 0)
-        return HttpResponse(
-            Articles.objects.get(author=request._user, update_time=t).id)
+        atc = Articles.objects.get(author=request._user, update_time=t)
+        logger.info(f"{request._user} 发表了《{atc}》", extra=get_extra(request))
+        return HttpResponse(atc.id)
 
     if request.GET.get("id") and request.GET["id"].isdigit():
         try:
@@ -106,6 +116,7 @@ def article_delete(request, atc_id):
     try:
         atc.state = -5
         atc.save()
+        logger.info(f"{request._user} 删除了《{atc}》", extra=get_extra(request))
     except Exception as e:
         return HttpResponseRedirect(f"/article/{atc_id}")
     return HttpResponseRedirect(f"/user/{request._user.id}")
@@ -115,6 +126,9 @@ def article_delete(request, atc_id):
 def article_like(request):
     Likes.objects.get_or_create(user=request._user,
                                 article_id=request.POST["id"])
+    logger.info(
+        f"{request._user} 点赞了《{Articles.objects.get(id=request.POST['id'])}》",
+        extra=get_extra(request))
     return HttpResponse("Success")
 
 
@@ -125,6 +139,8 @@ def comment_delete(request):
             if comment.author == request._user:
                 comment.state = -2
                 comment.save()
+                logger.info(f"{request._user} 删除了评论《{comment}》",
+                            extra=get_extra(request))
                 return HttpResponse("Success")
             else:
                 return HttpResponseForbidden("您不是该评论作者！")
