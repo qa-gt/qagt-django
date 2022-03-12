@@ -78,7 +78,7 @@ class Users(models.Model):
                                       default="")
 
     def __str__(self):
-        return f"{self.id} - {self.name}"
+        return f"{self.id}:{self.name}"
 
     class Meta:
         db_table = "users"
@@ -102,7 +102,7 @@ class Topics(models.Model):
                                      ))
 
     def __str__(self):
-        return f"{self.id} - {self.name}"
+        return f"{self.id}:{self.name}"
 
     class Meta:
         db_table = "topics"
@@ -138,7 +138,7 @@ class Articles(models.Model):
     read_count = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.id} - {self.title}"
+        return f"{self.id}:{self.title}"
 
     class Meta:
         db_table = "articles"
@@ -165,7 +165,7 @@ class Comments(models.Model):
                                      ))
 
     def __str__(self):
-        return f"{self.id} - {self.author.name} 于 {self.under.title}"
+        return f"{self.id}-{self.author} 于 {self.under}"
 
     class Meta:
         db_table = "comments"
@@ -199,7 +199,7 @@ class Reports(models.Model):
     )
 
     def __str__(self):
-        return f"{self.id} - {self.author} 举报 {self.article} 状态 {self.state}"
+        return f"{self.id}-{self.author} 举报 {self.article} 状态{self.state}"
 
     class Meta:
         db_table = "reports"
@@ -222,7 +222,7 @@ class Notices(models.Model):
     url = models.CharField(max_length=1000, default="", blank=True, null=True)
 
     def __str__(self):
-        return f"{self.id} - {self.recipient.name} 收到 {self.title}"
+        return f"{self.id}-{self.recipient} 收到 {self.title}"
 
     class Meta:
         db_table = "notices"
@@ -238,7 +238,7 @@ class Likes(models.Model):
                              related_name='likes')
 
     def __str__(self):
-        return f"{self.id} - {self.user.name} 赞了 {self.article.title}"
+        return f"{self.id}-{self.user} 赞了 {self.article}"
 
     class Meta:
         db_table = "likes"
