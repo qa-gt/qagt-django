@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 
 from QAGT.models import *
 from QAGT import get_extra, logger
+from .pushplus import make_push
 
 
 def make_notice(request):
@@ -19,4 +20,5 @@ def make_notice(request):
             url=f"/article/{atc.id}")
         logger.info(f"{request._user} 在文章《{atc}》的评论区@了{cmt.author}",
                     extra=get_extra(request))
+        make_push(request, cmt.author)
     return HttpResponse("Success")

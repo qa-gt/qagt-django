@@ -46,6 +46,8 @@ def index(request):
         if i not in top:
             article.append(i)
     article = top + article
+    if request.session.get("user"):
+        request._user.notices.filter(state=0).update(state=1)
     return render(
         request, "index.html", {
             "articles": article,

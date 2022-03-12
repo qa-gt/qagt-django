@@ -8,6 +8,8 @@ from django.views.decorators.http import (require_GET, require_http_methods,
                                           require_POST)
 from QAGT import get_extra, logger
 from QAGT.models import *
+from qagt_notice.pushplus import make_push
+
 
 # Create your views here.
 
@@ -25,14 +27,16 @@ def article_page(request, atc_id):
                                 under=article,
                                 content=request.POST["comment"],
                                 time=int(time.time()))
-        Notices.objects.get_or_create(
-            recipient=article.author,
-            title="有人评论了你的文章",
-            content=f"用户 {request._user.name} 在你的文章《{article.title}》下发表了评论",
-            time=int(time.time()),
-            url=f"/article/{article.id}")
-        logger.info(f"{request._user} 评论了《{article.title}》",
-                    extra=get_extra(request))
+        if request._user != article.author:
+            Notices.objects.get_or_create(
+                recipient=article.author,
+                title="有人评论了你的文章",
+                content=f"用户 {request._user.name} 在你的文章《{article.title}》下发表了评论",
+                time=int(time.time()),
+                url=f"/article/{article.id}")
+            logger.info(f"{request._user} 评论了《{article.title}》",
+                        extra=get_extra(request))
+            make_push(request, article.author)
         return HttpResponse("Success")
 
     _comments = article.comments.filter(state__gte=0).order_by("time")

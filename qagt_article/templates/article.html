@@ -188,16 +188,33 @@
         // 识别音乐
         html = html.replaceAll(/!!!MSC-(WYY|QQ)-(ID|NAME):(.*?)!!!/g, function (match, p1, p2, p3) {
             var id = music_cnt++;
-            console.log(p1, p2, p3);
             $.post("/music-url", {
                 site: p1.toLowerCase(),
                 by: p2.toLowerCase(),
                 value: p3
             }, function (data) {
-                console.log(data);
                 $(`#music-${id}`).attr("src", data);
             });
             return `<audio controls="controls" id="music-${id}"></audio>`;
+        });
+
+        var yiyan_cnt = 0;
+        // 亿言
+        html = html.replaceAll(/!!!YIYAN:?(.*?)!!!/g, function (match, p1) {
+            var id = yiyan_cnt++;
+            $.post("https://yiyan.yixiangzhilv.com/get", {
+                type: p1
+            }, function (data) {
+                data = JSON.parse(data);
+                let temp = "";
+                if (data["from"] && data["from_who"]) {
+                    temp = `${data["from"]} · ${data["from_who"]}`;
+                } else {
+                    temp = data["from"] || data["from_who"];
+                }
+                $(`#yiyan-${id}`).text(`${data["content"]} -「${temp}」`);
+            });
+            return `<span id="yiyan-${id}"></span>`;
         });
 
         ele.html(html);
