@@ -1,6 +1,7 @@
 import os
 import time
 
+import musicapi
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
@@ -67,6 +68,22 @@ def image_upload(request):
         for chunk in file.chunks():
             f.write(chunk)
     return HttpResponse(name)
+
+
+@require_POST
+def get_music_url(request):
+    url = ""
+    if request.POST["site"] == "qq":
+        if request.POST["by"] == "id":
+            url = musicapi.qq.get_by_id(request.POST["value"])
+        elif request.POST["by"] == "name":
+            url = musicapi.qq.get_by_name(request.POST["value"])
+    elif request.POST["site"] == "wyy":
+        if request.POST["by"] == "id":
+            url = musicapi.wyy.get_by_id(request.POST["value"])
+        elif request.POST["by"] == "name":
+            url = musicapi.wyy.get_by_name(request.POST["value"])
+    return HttpResponse(url)
 
 
 def error_404(request, exception):
