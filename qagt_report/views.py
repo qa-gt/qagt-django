@@ -8,8 +8,7 @@ from QAGT.models import *
 
 @require_POST
 def report_article(request, atc_id):
-    if Reports.objects.filter(reporter_id=request.session["user"],
-                              article_id=atc_id).count():
+    if request._user.reports.filter(article_id=atc_id).exists():
         return HttpResponse("您已经举报过该文章")
     Reports.objects.create(reporter_id=request.session["user"],
                            article_id=atc_id,

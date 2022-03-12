@@ -1,7 +1,7 @@
 import time
 
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotFound, Http404, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from QAGT.models import *
 

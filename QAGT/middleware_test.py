@@ -7,5 +7,5 @@ class TestServerChecker:
 
     def __call__(self, request):
         if request.COOKIES.get("qagtyyds", None) != "qagtyyds":
-            return HttpResponseForbidden("就你这个大**还想访问我的测试网站？")
+            return HttpResponseForbidden("<h1>就你这个大**还想访问我的测试网站？</h1>")
         return self.get_response(request)

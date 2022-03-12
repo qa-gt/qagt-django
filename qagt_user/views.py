@@ -51,13 +51,14 @@ def user_logout(request):
 
 
 def user_page(request, user_id):
-    if not Users.objects.filter(id=user_id).exists():
+    user = Users.objects.filter(id=user_id)
+    if not user.exists():
         raise Http404("用户不存在")
-    user = Users.objects.get(id=user_id)
+    user = user[0]
     page = int(request.GET.get("page") or 1)
-    _article = Articles.objects.filter(
-        state__gte=-3, author=user).order_by("-id")[(page - 1) * 15:page * 15]
-    _top = Articles.objects.filter(state__gte=1, author=user)
+    _article = user.articles.filter(
+        state__gte=-3).order_by("-id")[(page - 1) * 15:page * 15]
+    _top = user.articles.filter(state__gte=1)
     article = []
     top = []
     for i in _top:
@@ -83,10 +84,9 @@ def edit_information(request):
             values["sex"] = "保密"
         if values.get("real_name"):
             values["real_name_md5"] = get_md5(values["real_name"])
-        user = Users.objects.get(id=request.session["user"])
         for i, j in values.items():
-            user.__setattr__(i, j)
-        user.save()
+            request._user.__setattr__(i, j)
+        request._user.save()
         return HttpResponseRedirect("/user/edit")
     else:
         return render(request, "edit_information.html")

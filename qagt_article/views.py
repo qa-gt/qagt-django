@@ -10,37 +10,41 @@ from QAGT.models import *
 
 
 def article_page(request, atc_id):
-    article = Articles.objects.get(id=atc_id)
-    if article.state <= -4:
+    article = Articles.objects.filter(id=atc_id)
+    if not article.exists() or article[0].state <= -4:
         return HttpResponseNotFound("文章不存在！")
+    article = article[0]
+
     if request.method == "POST":
-        if Users.objects.get(id=request.session["user"]).state <= -2:
+        if request._user.state <= -2:
             return HttpResponseForbidden("您的账号已被限制发言")
-        Comments.objects.create(author_id=request.session["user"],
-                                under_id=atc_id,
+        Comments.objects.create(author=request._user,
+                                under=article,
                                 content=request.POST["comment"],
                                 time=int(time.time()))
+        Notices.objects.get_or_create(
+            recipient=article.author,
+            title="有人评论了你的文章",
+            content=f"用户 {request._user.name} 在文章《{article.title}》的评论区@了你",
+            time=int(time.time()),
+            url=f"/article/{article.id}")
         return HttpResponse("Success")
 
-    try:
-        _comments = Comments.objects.filter(under=article,
-                                            state__gte=0).order_by("time")
-        comment = []
-        top = []
-        for i in _comments:
-            comment.append(i)
-            if i.state == 1:
-                top.append(comment[-1])
-        likes = Likes.objects.filter(article=article)
-        return render(
-            request, "article.html",
-            dict(article=article,
-                 comment=comment,
-                 top=top,
-                 likes=likes,
-                 owner=article.author))
-    except Articles.DoesNotExist:
-        return HttpResponseNotFound("文章不存在！")
+    _comments = article.comments.filter(state__gte=0).order_by("time")
+    comment = []
+    top = []
+    for i in _comments:
+        comment.append(i)
+        if i.state == 1:
+            top.append(comment[-1])
+    likes = article.likes.all()
+    return render(
+        request, "article.html",
+        dict(article=article,
+             comment=comment,
+             top=top,
+             likes=likes,
+             owner=article.author))
 
 
 @require_POST
@@ -56,20 +60,23 @@ def article_read_count(request):
 
 def article_write(request):
     if request.method == "POST":
-        if Users.objects.get(id=request.session["user"]).state <= -1:
+        if request._user.state <= -1:
             return HttpResponseForbidden("您的账号已被限制操作贴子")
         if request.GET["update"] == "true":
-            atc = Articles.objects.get(id=request.GET["id"])
-            atc.title = request.POST["title"]
-            atc.content = request.POST["content"]
-            if Topics.objects.filter(id=request.POST["topic"]).exists():
-                atc.topic_id = int(request.POST["topic"])
-            atc.update_time = int(time.time())
-            atc.save()
-            return HttpResponse(atc.id)
+            try:
+                atc = Articles.objects.get(id=request.GET["id"])
+                atc.title = request.POST["title"]
+                atc.content = request.POST["content"]
+                atc.topic_id = request.POST["topic"] if Topics.objects.filter(
+                    id=request.POST["topic"]).exists() else 0
+                atc.update_time = int(time.time())
+                atc.save()
+                return HttpResponse(atc.id)
+            except Articles.DoesNotExist:
+                return HttpResponseNotFound("文章不存在！")
         t = int(time.time())
         Articles.objects.create(
-            author=Users.objects.get(id=request.session["user"]),
+            author=request._user,
             title=request.POST["title"],
             content=request.POST["content"],
             update_time=t,
@@ -77,8 +84,7 @@ def article_write(request):
             topic_id=int(request.POST["topic"]) if Topics.objects.filter(
                 id=request.POST["topic"]).exists() else 0)
         return HttpResponse(
-            Articles.objects.get(author_id=request.session["user"],
-                                 update_time=t).id)
+            Articles.objects.get(author=request._user, update_time=t).id)
 
     if request.GET.get("id") and request.GET["id"].isdigit():
         try:
@@ -92,17 +98,17 @@ def article_write(request):
 
 
 def article_delete(request, atc_id):
-    if Users.objects.get(id=request.session["user"]).state <= -1:
+    if request._user.state <= -1:
         return HttpResponseForbidden("您的账号已被限制操作贴子")
     atc = Articles.objects.get(id=atc_id)
-    if atc.author.id != request.session["user"]:
+    if atc.author != request._user:
         return HttpResponseForbidden("您不是该文章作者！")
     try:
         atc.state = -5
         atc.save()
     except Exception as e:
         return HttpResponseRedirect(f"/article/{atc_id}")
-    return HttpResponseRedirect(f"/user/{request.session['user']}")
+    return HttpResponseRedirect(f"/user/{request._user.id}")
 
 
 @require_POST
@@ -116,7 +122,7 @@ def comment_delete(request):
     if request.method == "POST":
         try:
             comment = Comments.objects.get(id=request.POST["cid"])
-            if comment.author_id == request.session["user"]:
+            if comment.author == request._user:
                 comment.state = -2
                 comment.save()
                 return HttpResponse("Success")
