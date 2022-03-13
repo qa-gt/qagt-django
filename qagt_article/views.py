@@ -61,8 +61,7 @@ def article_read_count(request):
         article = Articles.objects.get(id=request.POST["id"])
         article.read_count += 1
         article.save()
-        logger.info(f"{request._user} 阅读了《{article}》",
-                    extra=get_extra(request))
+        logger.info(f"阅读了《{article}》", extra=get_extra(request))
         return HttpResponse("Success")
     except Articles.DoesNotExist:
         return HttpResponseNotFound("文章不存在！")
