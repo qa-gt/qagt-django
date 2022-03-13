@@ -9,7 +9,7 @@ def send_push(user):
     time.sleep(1000)
     count = user.notices.filter(state=0).count()
     if count == 0:
-        logger.info(f"{user} 没有未读消息, 取消推送", extra=get_extra(user))
+        logger.info(f"{user} 没有未读消息, 取消推送", extra=get_extra(user, null=""))
         return
     try:
         requests.post("http://www.pushplus.plus/send",

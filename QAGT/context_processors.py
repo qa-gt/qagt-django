@@ -18,6 +18,7 @@ def global_context(request):
         "QAGT_SERVER":
         QAGT_SERVER,
         "notice":
-        Notices.objects.filter(recipient=request._user).order_by("-id")[:10]
-        if hasattr(request, '_user') else [],
+        Notices.objects.filter(recipient=request._user,
+                               state=0).order_by("-id")[:10] if hasattr(
+                                   request, '_user') else [],
     }
