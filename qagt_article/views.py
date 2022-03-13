@@ -202,7 +202,7 @@ def topic_page(request):
             "topic": topic,
             "topics": topics,
             "page": page,
-            "pages": topic.articles.count() // 15 + 1,
+            "pages": topic.articles.filter(state__gte=-1).count() // 15 + 1,
             "articles": article
         })
 
