@@ -21,7 +21,7 @@ class LoginRequired:
         ],
         "POST": [
             "/article/^[0-9]", "/article/write", "/article/delete/",
-            "/article/like", "/user/edit", "/notice/", "/admin/", "/report/"
+            "/user/edit", "/notice/", "/admin/", "/report/"
         ]
     }
 
