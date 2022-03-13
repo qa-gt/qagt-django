@@ -10,7 +10,6 @@ from QAGT import get_extra, logger
 from QAGT.models import *
 from qagt_notice.pushplus import make_push
 
-
 # Create your views here.
 
 
@@ -202,8 +201,8 @@ def topic_page(request):
         request, "topic.html", {
             "topic": topic,
             "topics": topics,
-            "page": 1,
-            "pages": 1,
+            "page": page,
+            "pages": topic.articles.count() // 15 + 1,
             "articles": article
         })
 
