@@ -53,6 +53,10 @@ class LoginRequired:
 
         response = self.get_response(request)
 
+        if request.session.get(
+                "user") and request.method == "GET" and request.path in ["/"]:
+            request._user.notices.filter(state=0).update(state=1)
+
         # 如果客户端cookie中没有key则设置
         if not request.COOKIES.get("key", None):
             response.set_cookie("key", request.session["key"])
