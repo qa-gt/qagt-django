@@ -11,7 +11,7 @@ from QAGT import get_extra, logger
 def report_article(request, atc_id):
     Reports.objects.get_or_create(reporter=request._user,
                                   article_id=atc_id,
-                                  time=int(time.time()))
+                                  report_time=int(time.time()))
     logger.info(f"{request._user} 举报了文章ID={atc_id}", extra=get_extra(request))
     return HttpResponse("Success")
 

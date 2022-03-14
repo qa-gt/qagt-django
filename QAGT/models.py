@@ -189,7 +189,7 @@ class Reports(models.Model):
                                          (-1, "已处理"),
                                      ))
     report_time = models.BigIntegerField()
-    operated_time = models.BigIntegerField()
+    operated_time = models.BigIntegerField(null=True, blank=True)
     operator = models.ForeignKey(
         Users,
         on_delete=models.DO_NOTHING,
