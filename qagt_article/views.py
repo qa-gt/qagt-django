@@ -6,6 +6,7 @@ from django.http import (Http404, HttpResponse, HttpResponseForbidden,
 from django.shortcuts import render
 from django.views.decorators.http import (require_GET, require_http_methods,
                                           require_POST)
+from django.db.models import Q
 from QAGT import get_extra, logger
 from QAGT.models import *
 from qagt_notice.pushplus import make_push
@@ -158,7 +159,8 @@ def search_page(request):
     if searching:
         page = int(request.GET.get("page") or 1)
         atc_list = Articles.objects.filter(
-            title__icontains=request.GET["keyword"],
+            Q(title__icontains=request.GET["keyword"])
+            | Q(content__icontains=request.GET["keyword"]),
             state__gte=-3).order_by("-id")
         pages = atc_list.count() // 15 + 1
         articles = atc_list[(page - 1) * 15:page * 15]
