@@ -101,7 +101,7 @@ body {
 
     /* 竖屏的话重新加载为此处的css */
     body {
-        background-image: url("/static/image/background-portrait.jpg");
+        background-image: url("/static/image/background-portrait-1.jpg");
         /* padding-top: 6%; */
     }
 
